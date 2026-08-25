@@ -29,6 +29,12 @@ interface AudioContextType {
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
+function extractYouTubeId(url: string | undefined): string | null {
+  if (!url) return null;
+  const match = url.match(/(?:music\.youtube\.com\/watch\?v=|youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/);
+  return match ? match[1] : null;
+}
+
 function normalizeTrack(track: Track | SongData): Track {
   if ("artist" in track) {
     return track;
@@ -52,8 +58,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [volume, setVolumeState] = useState<number>(0.85);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ytId = currentTrack ? extractYouTubeId(currentTrack.audioUrl) : null;
 
   const safePlay = async () => {
+    if (ytId) {
+      setIsPlaying(true);
+      return;
+    }
     if (!audioRef.current) return;
     try {
       await audioRef.current.play();
@@ -71,27 +82,32 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return;
     }
 
-    if (currentTrack?.id === track.id && audioRef.current) {
+    if (currentTrack?.id === track.id) {
       if (isPlaying) {
-        audioRef.current.pause();
+        if (audioRef.current && !ytId) audioRef.current.pause();
         setIsPlaying(false);
       } else {
         safePlay();
       }
     } else {
-      setCurrentTrack(track);
+      // Pause existing native audio if switching
       if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setCurrentTrack(track);
+      const newYtId = extractYouTubeId(track.audioUrl);
+      if (!newYtId && audioRef.current) {
         audioRef.current.src = track.audioUrl;
         audioRef.current.volume = volume;
-        safePlay();
       }
+      safePlay();
     }
   };
 
   const togglePlay = () => {
-    if (!audioRef.current || !currentTrack) return;
+    if (!currentTrack) return;
     if (isPlaying) {
-      audioRef.current.pause();
+      if (audioRef.current && !ytId) audioRef.current.pause();
       setIsPlaying(false);
     } else {
       safePlay();
@@ -99,7 +115,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const seek = (time: number) => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || ytId) return;
     audioRef.current.currentTime = time;
     setCurrentTime(time);
   };
@@ -137,20 +153,32 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }}
     >
       {children}
-      <audio
-        ref={audioRef}
-        preload="auto"
-        onTimeUpdate={() => {
-          if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
-        }}
-        onLoadedMetadata={() => {
-          if (audioRef.current) setDuration(audioRef.current.duration || 0);
-        }}
-        onEnded={() => {
-          setIsPlaying(false);
-          setCurrentTime(0);
-        }}
-      />
+      {/* HTML5 Native Audio Player for MP3 files */}
+      {!ytId && (
+        <audio
+          ref={audioRef}
+          preload="auto"
+          onTimeUpdate={() => {
+            if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+          }}
+          onLoadedMetadata={() => {
+            if (audioRef.current) setDuration(audioRef.current.duration || 0);
+          }}
+          onEnded={() => {
+            setIsPlaying(false);
+            setCurrentTime(0);
+          }}
+        />
+      )}
+      {/* Hidden YouTube Stream Iframe for YouTube Music links */}
+      {ytId && isPlaying && (
+        <iframe
+          src={`https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&enablejsapi=1`}
+          allow="autoplay"
+          className="hidden"
+          title="YouTube Audio Stream"
+        />
+      )}
     </AudioContext.Provider>
   );
 };
