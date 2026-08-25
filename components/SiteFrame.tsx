@@ -4,6 +4,7 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { Navbar } from "./Navbar";
 import { GlobalAudioPlayer } from "./GlobalAudioPlayer";
+import { VisualEditing } from "@sanity/visual-editing/react";
 
 export const SiteFrame: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
@@ -24,6 +25,7 @@ export const SiteFrame: React.FC<{ children: React.ReactNode }> = ({ children })
         </div>
       </footer>
       <GlobalAudioPlayer />
+      <VisualEditing portal={true} />
     </>
   );
 };

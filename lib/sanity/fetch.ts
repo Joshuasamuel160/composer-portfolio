@@ -27,6 +27,10 @@ export const client = createClient({
   dataset,
   apiVersion,
   useCdn: false,
+  stega: {
+    enabled: true,
+    studioUrl: "/studio",
+  },
 });
 
 export async function getBio(): Promise<BioData> {
