@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { formatVideoEmbedUrl } from "@/lib/utils/formatVideoUrl";
 import { X } from "lucide-react";
 
 interface VideoModalProps {
@@ -17,6 +18,8 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   onClose,
 }) => {
   if (!isOpen) return null;
+
+  const embedUrl = formatVideoEmbedUrl(videoUrl);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
@@ -38,7 +41,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
         {/* Video Embed Container */}
         <div className="relative w-full aspect-video bg-black">
           <iframe
-            src={videoUrl}
+            src={embedUrl}
             title={title}
             className="w-full h-full border-0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

@@ -45,14 +45,34 @@ export const screenProject = defineType({
     }),
     defineField({
       name: "videoUrl",
-      title: "Trailer or Clip Embed URL (YouTube/Vimeo link)",
+      title: "Trailer or Clip Video Link (Paste any YouTube or Vimeo URL)",
       type: "url",
+      description: "Paste standard YouTube link (e.g. https://www.youtube.com/watch?v=...) or Vimeo link",
     }),
     defineField({
       name: "description",
       title: "Short Description",
       type: "text",
       rows: 3,
+    }),
+    defineField({
+      name: "scoreCues",
+      title: "Film Score Cues & Soundtrack Tracks",
+      description: "Upload MP3 audio files or paste audio links pertaining to this movie",
+      type: "array",
+      of: [
+        {
+          type: "object",
+          name: "scoreCue",
+          title: "Score Cue Track",
+          fields: [
+            { name: "title", title: "Cue Title (e.g. Cue 01: Main Theme)", type: "string" },
+            { name: "duration", title: "Duration (e.g. 2:45)", type: "string" },
+            { name: "audioFile", title: "Upload MP3 Audio File", type: "file" },
+            { name: "audioUrl", title: "Or Paste MP3 Audio URL", type: "url" },
+          ],
+        },
+      ],
     }),
     defineField({
       name: "order",

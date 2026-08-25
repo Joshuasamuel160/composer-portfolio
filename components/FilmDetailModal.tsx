@@ -3,7 +3,8 @@
 import React from "react";
 import { ScreenProjectData } from "@/lib/mockData";
 import { useAudio } from "@/lib/context/AudioContext";
-import { X, Play, Pause, Music, Film } from "lucide-react";
+import { formatVideoEmbedUrl } from "@/lib/utils/formatVideoUrl";
+import { X, Play, Pause, Music } from "lucide-react";
 
 interface FilmDetailModalProps {
   project: ScreenProjectData | null;
@@ -14,6 +15,8 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   const { currentTrack, isPlaying, playTrack } = useAudio();
 
   if (!project) return null;
+
+  const embedUrl = formatVideoEmbedUrl(project.videoUrl);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md overflow-y-auto">
@@ -47,10 +50,10 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto space-y-6">
           {/* Top: Video Trailer / Clip Embed */}
-          {project.videoUrl && (
+          {embedUrl && (
             <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg">
               <iframe
-                src={project.videoUrl}
+                src={embedUrl}
                 title={project.title}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
