@@ -4,7 +4,7 @@ import React from "react";
 import { ScreenProjectData } from "@/lib/mockData";
 import { useAudio } from "@/lib/context/AudioContext";
 import { formatVideoEmbedUrl } from "@/lib/utils/formatVideoUrl";
-import { X, Play, Pause, Music } from "lucide-react";
+import { X, Play, Pause, Music, ExternalLink } from "lucide-react";
 
 interface FilmDetailModalProps {
   project: ScreenProjectData | null;
@@ -51,14 +51,29 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
         <div className="p-6 overflow-y-auto space-y-6">
           {/* Top: Video Trailer / Clip Embed */}
           {embedUrl && (
-            <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg">
-              <iframe
-                src={embedUrl}
-                title={project.title}
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+            <div className="space-y-2">
+              <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg">
+                <iframe
+                  src={embedUrl}
+                  title={project.title}
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+              </div>
+              {project.videoUrl && (
+                <div className="flex justify-end">
+                  <a
+                    href={project.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 hover:text-amber-400 transition-colors"
+                  >
+                    Watch video directly on YouTube / External Link <ExternalLink size={12} />
+                  </a>
+                </div>
+              )}
             </div>
           )}
 

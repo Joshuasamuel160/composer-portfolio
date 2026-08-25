@@ -2,7 +2,7 @@
 
 import React from "react";
 import { formatVideoEmbedUrl } from "@/lib/utils/formatVideoUrl";
-import { X } from "lucide-react";
+import { X, ExternalLink } from "lucide-react";
 
 interface VideoModalProps {
   isOpen: boolean;
@@ -39,14 +39,29 @@ export const VideoModal: React.FC<VideoModalProps> = ({
         </div>
 
         {/* Video Embed Container */}
-        <div className="relative w-full aspect-video bg-black">
-          <iframe
-            src={embedUrl}
-            title={title}
-            className="w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+        <div className="p-4 space-y-3">
+          <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-white/10">
+            <iframe
+              src={embedUrl}
+              title={title}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
+          {videoUrl && (
+            <div className="flex justify-end px-2">
+              <a
+                href={videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 hover:text-amber-400 transition-colors"
+              >
+                Watch video directly on YouTube / External Link <ExternalLink size={12} />
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>
