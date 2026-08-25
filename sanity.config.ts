@@ -1,5 +1,6 @@
 import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
+import { presentationTool } from "sanity/presentation";
 import { schemaTypes } from "./lib/sanity/schemas";
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "50173b3c";
@@ -11,7 +12,15 @@ export default defineConfig({
   projectId,
   dataset,
   basePath: "/studio",
-  plugins: [structureTool()],
+  plugins: [
+    structureTool(),
+    presentationTool({
+      previewUrl: {
+        origin: typeof window !== "undefined" ? window.location.origin : "https://composer-portfolio-mu.vercel.app",
+        preview: "/",
+      },
+    }),
+  ],
   schema: {
     types: schemaTypes,
   },
