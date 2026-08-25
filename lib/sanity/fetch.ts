@@ -30,15 +30,23 @@ export const client = createClient({
 });
 
 export async function getBio(): Promise<BioData> {
-  if (!client) return mockBio;
   try {
-    const data = await client.fetch(`*[_type == "bio"][0]`);
-    if (!data) return mockBio;
+    const data = await client.fetch(
+      `*[_type == "bio"][0] {
+        name,
+        tagline,
+        "photoUrl": photo.asset->url,
+        paragraphs
+      }`,
+      {},
+      { next: { revalidate: 0 } }
+    );
+    if (!data || !data.name) return mockBio;
     return {
       name: data.name || mockBio.name,
       tagline: data.tagline || mockBio.tagline,
-      photoUrl: data.photo?.asset?.url || mockBio.photoUrl,
-      paragraphs: data.paragraphs || mockBio.paragraphs,
+      photoUrl: data.photoUrl || mockBio.photoUrl,
+      paragraphs: data.paragraphs && data.paragraphs.length > 0 ? data.paragraphs : mockBio.paragraphs,
     };
   } catch {
     return mockBio;
@@ -46,14 +54,21 @@ export async function getBio(): Promise<BioData> {
 }
 
 export async function getBrands(): Promise<BrandData[]> {
-  if (!client) return mockBrands;
   try {
-    const data = await client.fetch(`*[_type == "brand"] | order(order asc)`);
+    const data = await client.fetch(
+      `*[_type == "brand"] | order(order asc) {
+        _id,
+        name,
+        "logoUrl": logo.asset->url
+      }`,
+      {},
+      { next: { revalidate: 0 } }
+    );
     if (!data || data.length === 0) return mockBrands;
     return data.map((b: any, index: number) => ({
       id: b._id || `b-${index}`,
       name: b.name,
-      logoUrl: b.logo?.asset?.url || mockBrands[index % mockBrands.length].logoUrl,
+      logoUrl: b.logoUrl || mockBrands[index % mockBrands.length].logoUrl,
     }));
   } catch {
     return mockBrands;
@@ -61,14 +76,22 @@ export async function getBrands(): Promise<BrandData[]> {
 }
 
 export async function getArtists(): Promise<ArtistData[]> {
-  if (!client) return mockArtists;
   try {
-    const data = await client.fetch(`*[_type == "artist"] | order(order asc)`);
+    const data = await client.fetch(
+      `*[_type == "artist"] | order(order asc) {
+        _id,
+        name,
+        "photoUrl": photo.asset->url,
+        bio
+      }`,
+      {},
+      { next: { revalidate: 0 } }
+    );
     if (!data || data.length === 0) return mockArtists;
     return data.map((a: any, index: number) => ({
       id: a._id || `art-${index}`,
       name: a.name,
-      photoUrl: a.photo?.asset?.url || mockArtists[index % mockArtists.length].photoUrl,
+      photoUrl: a.photoUrl || mockArtists[index % mockArtists.length].photoUrl,
       bio: a.bio,
     }));
   } catch {
@@ -77,7 +100,6 @@ export async function getArtists(): Promise<ArtistData[]> {
 }
 
 export async function getSongs(): Promise<SongData[]> {
-  if (!client) return mockSongs;
   try {
     const data = await client.fetch(
       `*[_type == "song"] | order(order asc) {
@@ -90,7 +112,9 @@ export async function getSongs(): Promise<SongData[]> {
         "artistId": artist._ref,
         "artistName": artist->name,
         "coverUrl": coverImage.asset->url
-      }`
+      }`,
+      {},
+      { next: { revalidate: 0 } }
     );
     if (!data || data.length === 0) return mockSongs;
     return data.map((s: any, index: number) => ({
@@ -110,9 +134,22 @@ export async function getSongs(): Promise<SongData[]> {
 }
 
 export async function getScreenProjects(): Promise<ScreenProjectData[]> {
-  if (!client) return mockScreenProjects;
   try {
-    const data = await client.fetch(`*[_type == "screenProject"] | order(order asc)`);
+    const data = await client.fetch(
+      `*[_type == "screenProject"] | order(order asc) {
+        _id,
+        title,
+        year,
+        role,
+        category,
+        "posterUrl": poster.asset->url,
+        videoUrl,
+        description,
+        scoreCues
+      }`,
+      {},
+      { next: { revalidate: 0 } }
+    );
     if (!data || data.length === 0) return mockScreenProjects;
     return data.map((sp: any, index: number) => ({
       id: sp._id || `scr-${index}`,
@@ -120,9 +157,10 @@ export async function getScreenProjects(): Promise<ScreenProjectData[]> {
       year: sp.year,
       role: sp.role,
       category: sp.category || "Cinema",
-      posterUrl: sp.poster?.asset?.url || mockScreenProjects[index % mockScreenProjects.length].posterUrl,
+      posterUrl: sp.posterUrl || mockScreenProjects[index % mockScreenProjects.length].posterUrl,
       videoUrl: sp.videoUrl || mockScreenProjects[index % mockScreenProjects.length].videoUrl,
       description: sp.description,
+      scoreCues: sp.scoreCues || mockScreenProjects[index % mockScreenProjects.length].scoreCues,
     }));
   } catch {
     return mockScreenProjects;
@@ -130,14 +168,23 @@ export async function getScreenProjects(): Promise<ScreenProjectData[]> {
 }
 
 export async function getAds(): Promise<AdCampaignData[]> {
-  if (!client) return mockAds;
   try {
-    const data = await client.fetch(`*[_type == "adCampaign"] | order(order asc)`);
+    const data = await client.fetch(
+      `*[_type == "adCampaign"] | order(order asc) {
+        _id,
+        brandName,
+        "thumbnailUrl": thumbnail.asset->url,
+        videoUrl,
+        description
+      }`,
+      {},
+      { next: { revalidate: 0 } }
+    );
     if (!data || data.length === 0) return mockAds;
     return data.map((ad: any, index: number) => ({
       id: ad._id || `ad-${index}`,
       brandName: ad.brandName,
-      thumbnailUrl: ad.thumbnail?.asset?.url || mockAds[index % mockAds.length].thumbnailUrl,
+      thumbnailUrl: ad.thumbnailUrl || mockAds[index % mockAds.length].thumbnailUrl,
       videoUrl: ad.videoUrl || mockAds[index % mockAds.length].videoUrl,
       description: ad.description,
     }));
@@ -147,16 +194,27 @@ export async function getAds(): Promise<AdCampaignData[]> {
 }
 
 export async function getFeaturedWork(): Promise<FeaturedWorkItem[]> {
-  if (!client) return mockFeaturedWork;
   try {
-    const data = await client.fetch(`*[_type == "featuredWork"] | order(order asc)`);
+    const data = await client.fetch(
+      `*[_type == "featuredWork"] | order(order asc) {
+        _id,
+        title,
+        category,
+        role,
+        "image": image.asset->url,
+        link,
+        description
+      }`,
+      {},
+      { next: { revalidate: 0 } }
+    );
     if (!data || data.length === 0) return mockFeaturedWork;
     return data.map((fw: any, index: number) => ({
       id: fw._id || `fw-${index}`,
       title: fw.title,
       category: fw.category,
       role: fw.role,
-      image: fw.image?.asset?.url || mockFeaturedWork[index % mockFeaturedWork.length].image,
+      image: fw.image || mockFeaturedWork[index % mockFeaturedWork.length].image,
       link: fw.link || "/screen",
       description: fw.description || "",
     }));
@@ -170,5 +228,9 @@ export async function getHeroPiece(): Promise<SongData> {
 }
 
 export async function getHeroReels(): Promise<SongData[]> {
+  const songs = await getSongs();
+  if (songs && songs.length >= 3) {
+    return songs.slice(0, 3);
+  }
   return mockHeroReels;
 }
