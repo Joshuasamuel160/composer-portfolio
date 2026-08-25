@@ -24,6 +24,24 @@ export const screenProject = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: "director",
+      title: "Director Name",
+      type: "string",
+      description: "e.g. Denis Villeneuve",
+    }),
+    defineField({
+      name: "executiveProducer",
+      title: "Executive Producer (EP)",
+      type: "string",
+      description: "e.g. Mary Parent",
+    }),
+    defineField({
+      name: "productionCompany",
+      title: "Production Company / Studio",
+      type: "string",
+      description: "e.g. Warner Bros. / Legendary Pictures",
+    }),
+    defineField({
       name: "category",
       title: "Category",
       type: "string",

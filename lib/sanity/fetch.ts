@@ -103,40 +103,6 @@ export async function getArtists(): Promise<ArtistData[]> {
   }
 }
 
-export async function getSongs(): Promise<SongData[]> {
-  try {
-    const data = await client.fetch(
-      `*[_type == "song"] | order(order asc) {
-        _id,
-        title,
-        role,
-        audioUrl,
-        embedUrl,
-        releaseYear,
-        "artistId": artist._ref,
-        "artistName": artist->name,
-        "coverUrl": coverImage.asset->url
-      }`,
-      {},
-      { next: { revalidate: 0 } }
-    );
-    if (!data || data.length === 0) return mockSongs;
-    return data.map((s: any, index: number) => ({
-      id: s._id || `s-${index}`,
-      title: s.title,
-      artistId: s.artistId || `art-${index}`,
-      artistName: s.artistName || "Artist",
-      role: s.role,
-      coverUrl: s.coverUrl || mockSongs[index % mockSongs.length].coverUrl,
-      audioUrl: s.audioUrl || mockSongs[index % mockSongs.length].audioUrl,
-      embedUrl: s.embedUrl,
-      releaseYear: s.releaseYear || "2024",
-    }));
-  } catch {
-    return mockSongs;
-  }
-}
-
 export async function getScreenProjects(): Promise<ScreenProjectData[]> {
   try {
     const data = await client.fetch(
@@ -145,11 +111,20 @@ export async function getScreenProjects(): Promise<ScreenProjectData[]> {
         title,
         year,
         role,
+        director,
+        executiveProducer,
+        productionCompany,
         category,
         "posterUrl": poster.asset->url,
         videoUrl,
         description,
-        scoreCues
+        scoreCues[] {
+          _key,
+          title,
+          duration,
+          audioUrl,
+          "audioFileUrl": audioFile.asset->url
+        }
       }`,
       {},
       { next: { revalidate: 0 } }
@@ -160,14 +135,88 @@ export async function getScreenProjects(): Promise<ScreenProjectData[]> {
       title: sp.title,
       year: sp.year,
       role: sp.role,
+      director: sp.director,
+      executiveProducer: sp.executiveProducer,
+      productionCompany: sp.productionCompany,
       category: sp.category || "Cinema",
       posterUrl: sp.posterUrl || mockScreenProjects[index % mockScreenProjects.length].posterUrl,
       videoUrl: sp.videoUrl || mockScreenProjects[index % mockScreenProjects.length].videoUrl,
       description: sp.description,
-      scoreCues: sp.scoreCues || mockScreenProjects[index % mockScreenProjects.length].scoreCues,
+      scoreCues: sp.scoreCues
+        ? sp.scoreCues.map((cue: any, cIdx: number) => ({
+            id: cue._key || `cue-${cIdx}`,
+            title: cue.title,
+            duration: cue.duration || "2:30",
+            audioUrl: cue.audioFileUrl || cue.audioUrl || "",
+          }))
+        : mockScreenProjects[index % mockScreenProjects.length].scoreCues,
     }));
   } catch {
     return mockScreenProjects;
+  }
+}
+
+export async function getSongs(): Promise<SongData[]> {
+  try {
+    // 1. Fetch standalone Song documents
+    const songData = await client.fetch(
+      `*[_type == "song"] | order(order asc) {
+        _id,
+        title,
+        role,
+        audioUrl,
+        "audioFileUrl": audioFile.asset->url,
+        embedUrl,
+        releaseYear,
+        "artistId": artist._ref,
+        "artistName": artist->name,
+        "coverUrl": coverImage.asset->url
+      }`,
+      {},
+      { next: { revalidate: 0 } }
+    );
+
+    let standaloneSongs: SongData[] = [];
+    if (songData && songData.length > 0) {
+      standaloneSongs = songData.map((s: any, index: number) => ({
+        id: s._id || `s-${index}`,
+        title: s.title,
+        artistId: s.artistId || `art-${index}`,
+        artistName: s.artistName || "Julian Vance",
+        role: s.role || "Producer",
+        coverUrl: s.coverUrl || mockSongs[index % mockSongs.length].coverUrl,
+        audioUrl: s.audioFileUrl || s.audioUrl || mockSongs[index % mockSongs.length].audioUrl,
+        embedUrl: s.embedUrl,
+        releaseYear: s.releaseYear || "2024",
+      }));
+    }
+
+    // 2. Fetch score cue tracks from Screen Projects and convert them to SongData
+    const screenProjects = await getScreenProjects();
+    const movieCueSongs: SongData[] = [];
+
+    screenProjects.forEach((proj) => {
+      if (proj.scoreCues && proj.scoreCues.length > 0) {
+        proj.scoreCues.forEach((cue) => {
+          movieCueSongs.push({
+            id: `cue-${proj.id}-${cue.id}`,
+            title: cue.title,
+            artistId: proj.id,
+            artistName: proj.title,
+            role: `${proj.role} (${proj.year})`,
+            coverUrl: proj.posterUrl,
+            audioUrl: cue.audioUrl,
+            releaseYear: proj.year,
+          });
+        });
+      }
+    });
+
+    const combined = [...standaloneSongs, ...movieCueSongs];
+    if (combined.length === 0) return mockSongs;
+    return combined;
+  } catch {
+    return mockSongs;
   }
 }
 
@@ -228,6 +277,10 @@ export async function getFeaturedWork(): Promise<FeaturedWorkItem[]> {
 }
 
 export async function getHeroPiece(): Promise<SongData> {
+  const songs = await getSongs();
+  if (songs && songs.length > 0) {
+    return songs[0];
+  }
   return mockHeroPiece;
 }
 

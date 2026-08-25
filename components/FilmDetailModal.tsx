@@ -77,12 +77,34 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
             </div>
           )}
 
-          {/* Role & Description */}
-          <div>
-            <p className="text-xs text-amber-500 font-mono tracking-widest uppercase mb-1">
+          {/* Role, Credits & Description */}
+          <div className="space-y-2">
+            <p className="text-xs text-amber-500 font-mono tracking-widest uppercase">
               {project.role}
             </p>
-            <p className="text-sm text-zinc-300 font-light leading-relaxed">
+
+            {/* Film Credits Strip */}
+            {(project.director || project.executiveProducer || project.productionCompany) && (
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs font-mono text-zinc-400 py-2 border-y border-white/5">
+                {project.director && (
+                  <span>
+                    <strong className="text-zinc-200 uppercase font-normal">DIR:</strong> {project.director}
+                  </span>
+                )}
+                {project.executiveProducer && (
+                  <span>
+                    <strong className="text-zinc-200 uppercase font-normal">EP:</strong> {project.executiveProducer}
+                  </span>
+                )}
+                {project.productionCompany && (
+                  <span>
+                    <strong className="text-zinc-200 uppercase font-normal">STUDIO:</strong> {project.productionCompany}
+                  </span>
+                )}
+              </div>
+            )}
+
+            <p className="text-sm text-zinc-300 font-light leading-relaxed pt-1">
               {project.description}
             </p>
           </div>
