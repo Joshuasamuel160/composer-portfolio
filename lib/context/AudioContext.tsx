@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useRef, useEffect } from "react";
+import React, { createContext, useContext, useState, useRef } from "react";
 import { SongData } from "../mockData";
 
 export interface Track {
@@ -53,54 +53,25 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const audio = new Audio();
-      audioRef.current = audio;
-
-      const handleTimeUpdate = () => {
-        setCurrentTime(audio.currentTime);
-      };
-
-      const handleLoadedMetadata = () => {
-        setDuration(audio.duration || 0);
-      };
-
-      const handleEnded = () => {
-        setIsPlaying(false);
-        setCurrentTime(0);
-      };
-
-      audio.addEventListener("timeupdate", handleTimeUpdate);
-      audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.addEventListener("ended", handleEnded);
-
-      return () => {
-        audio.pause();
-        audio.removeEventListener("timeupdate", handleTimeUpdate);
-        audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-        audio.removeEventListener("ended", handleEnded);
-      };
-    }
-  }, []);
-
   const safePlay = async () => {
     if (!audioRef.current) return;
     try {
       await audioRef.current.play();
       setIsPlaying(true);
-    } catch {
-      // Gracefully catch browser autoplay restrictions or play interruptions
+    } catch (err) {
+      console.warn("Audio playback error:", err);
       setIsPlaying(false);
     }
   };
 
   const playTrack = (inputTrack: Track | SongData) => {
-    if (!audioRef.current) return;
     const track = normalizeTrack(inputTrack);
+    if (!track.audioUrl) {
+      console.warn("No audio URL provided for track:", track.title);
+      return;
+    }
 
-    if (currentTrack?.id === track.id) {
-      // Toggle if same track
+    if (currentTrack?.id === track.id && audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
         setIsPlaying(false);
@@ -108,11 +79,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         safePlay();
       }
     } else {
-      // Load new track
       setCurrentTrack(track);
-      audioRef.current.src = track.audioUrl;
-      audioRef.current.volume = volume;
-      safePlay();
+      if (audioRef.current) {
+        audioRef.current.src = track.audioUrl;
+        audioRef.current.volume = volume;
+        safePlay();
+      }
     }
   };
 
@@ -165,6 +137,20 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }}
     >
       {children}
+      <audio
+        ref={audioRef}
+        preload="auto"
+        onTimeUpdate={() => {
+          if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
+        }}
+        onLoadedMetadata={() => {
+          if (audioRef.current) setDuration(audioRef.current.duration || 0);
+        }}
+        onEnded={() => {
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }}
+      />
     </AudioContext.Provider>
   );
 };
