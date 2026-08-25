@@ -116,6 +116,7 @@ export async function getScreenProjects(): Promise<ScreenProjectData[]> {
         productionCompany,
         category,
         "posterUrl": poster.asset->url,
+        "videoFileUrl": videoFile.asset->url,
         videoUrl,
         description,
         scoreCues[] {
@@ -140,7 +141,7 @@ export async function getScreenProjects(): Promise<ScreenProjectData[]> {
       productionCompany: sp.productionCompany,
       category: sp.category || "Cinema",
       posterUrl: sp.posterUrl || mockScreenProjects[index % mockScreenProjects.length].posterUrl,
-      videoUrl: sp.videoUrl || mockScreenProjects[index % mockScreenProjects.length].videoUrl,
+      videoUrl: sp.videoFileUrl || sp.videoUrl || mockScreenProjects[index % mockScreenProjects.length].videoUrl,
       description: sp.description,
       scoreCues: sp.scoreCues
         ? sp.scoreCues.map((cue: any, cIdx: number) => ({
@@ -198,16 +199,18 @@ export async function getSongs(): Promise<SongData[]> {
     screenProjects.forEach((proj) => {
       if (proj.scoreCues && proj.scoreCues.length > 0) {
         proj.scoreCues.forEach((cue) => {
-          movieCueSongs.push({
-            id: `cue-${proj.id}-${cue.id}`,
-            title: cue.title,
-            artistId: proj.id,
-            artistName: proj.title,
-            role: `${proj.role} (${proj.year})`,
-            coverUrl: proj.posterUrl,
-            audioUrl: cue.audioUrl,
-            releaseYear: proj.year,
-          });
+          if (cue.audioUrl) {
+            movieCueSongs.push({
+              id: `cue-${proj.id}-${cue.id}`,
+              title: cue.title,
+              artistId: proj.id,
+              artistName: proj.title,
+              role: `${proj.role} (${proj.year})`,
+              coverUrl: proj.posterUrl,
+              audioUrl: cue.audioUrl,
+              releaseYear: proj.year,
+            });
+          }
         });
       }
     });
@@ -227,6 +230,7 @@ export async function getAds(): Promise<AdCampaignData[]> {
         _id,
         brandName,
         "thumbnailUrl": thumbnail.asset->url,
+        "videoFileUrl": videoFile.asset->url,
         videoUrl,
         description
       }`,
@@ -238,7 +242,7 @@ export async function getAds(): Promise<AdCampaignData[]> {
       id: ad._id || `ad-${index}`,
       brandName: ad.brandName,
       thumbnailUrl: ad.thumbnailUrl || mockAds[index % mockAds.length].thumbnailUrl,
-      videoUrl: ad.videoUrl || mockAds[index % mockAds.length].videoUrl,
+      videoUrl: ad.videoFileUrl || ad.videoUrl || mockAds[index % mockAds.length].videoUrl,
       description: ad.description,
     }));
   } catch {

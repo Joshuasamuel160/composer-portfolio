@@ -1,6 +1,22 @@
+export function isDirectVideoFile(url: string | undefined): boolean {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return (
+    lower.includes(".mp4") ||
+    lower.includes(".webm") ||
+    lower.includes(".mov") ||
+    lower.includes("cdn.sanity.io/files")
+  );
+}
+
 export function formatVideoEmbedUrl(url: string | undefined): string {
   if (!url) return "";
   let formatted = url.trim();
+
+  // If it's a direct uploaded MP4 / WebM / Sanity video file
+  if (isDirectVideoFile(formatted)) {
+    return formatted;
+  }
 
   // YouTube watch links: https://www.youtube.com/watch?v=ID
   if (formatted.includes("youtube.com/watch")) {

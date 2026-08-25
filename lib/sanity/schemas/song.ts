@@ -31,8 +31,15 @@ export const song = defineType({
       options: { hotspot: true },
     }),
     defineField({
+      name: "audioFile",
+      title: "Upload MP3 Audio File",
+      type: "file",
+      options: { accept: "audio/*" },
+      description: "Upload audio file directly from your computer",
+    }),
+    defineField({
       name: "audioUrl",
-      title: "Audio Stream URL (Direct mp3/wav audio link)",
+      title: "Audio Stream URL (Or paste direct mp3 link)",
       type: "url",
     }),
     defineField({

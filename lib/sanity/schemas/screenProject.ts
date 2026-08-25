@@ -62,8 +62,15 @@ export const screenProject = defineType({
       options: { hotspot: true },
     }),
     defineField({
+      name: "videoFile",
+      title: "Upload Trailer Video File (MP4 / WebM)",
+      type: "file",
+      options: { accept: "video/*" },
+      description: "Upload video file directly from your computer",
+    }),
+    defineField({
       name: "videoUrl",
-      title: "Trailer or Clip Video Link (Paste any YouTube or Vimeo URL)",
+      title: "Or Paste YouTube / Vimeo Trailer Link",
       type: "url",
       description: "Paste standard YouTube link (e.g. https://www.youtube.com/watch?v=...) or Vimeo link",
     }),

@@ -3,7 +3,7 @@
 import React from "react";
 import { ScreenProjectData } from "@/lib/mockData";
 import { useAudio } from "@/lib/context/AudioContext";
-import { formatVideoEmbedUrl } from "@/lib/utils/formatVideoUrl";
+import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
 import { X, Play, Pause, Music, ExternalLink } from "lucide-react";
 
 interface FilmDetailModalProps {
@@ -17,6 +17,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   if (!project) return null;
 
   const embedUrl = formatVideoEmbedUrl(project.videoUrl);
+  const isVideoFile = isDirectVideoFile(project.videoUrl);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md overflow-y-auto">
@@ -49,20 +50,28 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
 
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto space-y-6">
-          {/* Top: Video Trailer / Clip Embed */}
+          {/* Top: Video Trailer / Clip Embed or HTML5 Video */}
           {embedUrl && (
             <div className="space-y-2">
               <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg">
-                <iframe
-                  src={embedUrl}
-                  title={project.title}
-                  className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  allowFullScreen
-                />
+                {isVideoFile ? (
+                  <video
+                    src={embedUrl}
+                    controls
+                    className="w-full h-full object-contain bg-black"
+                  />
+                ) : (
+                  <iframe
+                    src={embedUrl}
+                    title={project.title}
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    allowFullScreen
+                  />
+                )}
               </div>
-              {project.videoUrl && (
+              {project.videoUrl && !isVideoFile && (
                 <div className="flex justify-end">
                   <a
                     href={project.videoUrl}
