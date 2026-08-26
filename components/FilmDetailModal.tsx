@@ -29,10 +29,17 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
       : `${embedUrl}?autoplay=1&mute=0`
     : "";
 
-  // Scroll overlay to top whenever a project is opened
+  // Scroll window AND modal overlay to the very top whenever a project is opened
   useEffect(() => {
-    if (project && modalOverlayRef.current) {
-      modalOverlayRef.current.scrollTop = 0;
+    if (project) {
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }
+      if (modalOverlayRef.current) {
+        modalOverlayRef.current.scrollTop = 0;
+      }
     }
   }, [project]);
 
