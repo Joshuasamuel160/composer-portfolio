@@ -11,6 +11,12 @@ interface ScreenGridProps {
 
 export const ScreenGrid: React.FC<ScreenGridProps> = ({ projects }) => {
   const [selectedProject, setSelectedProject] = useState<ScreenProjectData | null>(null);
+  const [expandedCardIds, setExpandedCardIds] = useState<Record<string, boolean>>({});
+
+  const toggleCardExpand = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // Don't trigger modal pop-up when toggling read more
+    setExpandedCardIds((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
     <>
@@ -31,7 +37,7 @@ export const ScreenGrid: React.FC<ScreenGridProps> = ({ projects }) => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/30 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
 
-              {/* Category Badge: Cinema vs YouTube */}
+              {/* Category Badge: Cinema vs YouTube vs Custom */}
               <div className="absolute top-4 left-4">
                 <span
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest backdrop-blur-md border ${
@@ -67,9 +73,27 @@ export const ScreenGrid: React.FC<ScreenGridProps> = ({ projects }) => {
                 <p className="text-xs text-amber-500 font-medium tracking-wider uppercase mb-3">
                   {project.role}
                 </p>
-                <p className="text-sm text-zinc-400 font-light leading-relaxed">
-                  {project.description}
-                </p>
+
+                {/* Description with Read More / Show Less Toggle */}
+                {project.description && (
+                  <div className="space-y-1">
+                    <p
+                      className={`text-sm text-zinc-400 font-light leading-relaxed transition-all duration-300 ${
+                        !expandedCardIds[project.id] ? "line-clamp-2" : ""
+                      }`}
+                    >
+                      {project.description}
+                    </p>
+                    {project.description.length > 90 && (
+                      <button
+                        onClick={(e) => toggleCardExpand(e, project.id)}
+                        className="text-xs font-mono text-amber-400 hover:text-amber-300 underline underline-offset-4 focus:outline-none transition-colors"
+                      >
+                        {expandedCardIds[project.id] ? "Show Less" : "Read More"}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-white/5">
