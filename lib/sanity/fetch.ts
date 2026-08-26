@@ -151,7 +151,7 @@ export async function getScreenProjects(): Promise<ScreenProjectData[]> {
             duration: cue.duration || "2:30",
             audioUrl: cue.audioFileUrl || cue.audioUrl || "",
           }))
-        : mockScreenProjects[index % mockScreenProjects.length].scoreCues,
+        : [],
     }));
   } catch {
     return mockScreenProjects;
@@ -187,7 +187,7 @@ export async function getSongs(): Promise<SongData[]> {
         artistName: s.artistName || "Julian Vance",
         role: s.role || "Producer",
         coverUrl: s.coverUrl || mockSongs[index % mockSongs.length].coverUrl,
-        audioUrl: s.audioFileUrl || s.audioUrl || mockSongs[index % mockSongs.length].audioUrl,
+        audioUrl: s.audioFileUrl || s.audioUrl || "",
         embedUrl: s.embedUrl,
         releaseYear: s.releaseYear || "2024",
       }));
