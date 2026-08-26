@@ -28,7 +28,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
       : `${embedUrl}?autoplay=1&mute=0`
     : "";
 
-  // Lock body scroll when modal is open to eliminate double scrollbars
+  // Lock background body scroll when modal is open
   useEffect(() => {
     if (project) {
       document.body.style.overflow = "hidden";
@@ -117,14 +117,14 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
         if (videoRef.current) videoRef.current.pause();
         onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md overflow-hidden"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/90 backdrop-blur-md p-4 sm:p-6 sm:py-12 flex justify-center items-start"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-4xl bg-zinc-950 border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto max-h-[85vh] h-[85vh] flex flex-col min-h-0"
+        className="relative w-full max-w-4xl bg-zinc-950 border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto text-left"
       >
-        {/* Modal Header (Fixed Header) */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-zinc-900/50 flex-shrink-0">
+        {/* Modal Header (Sticky Header) */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-zinc-900/90 backdrop-blur-md sticky top-0 z-20">
           <div className="flex items-center gap-3 min-w-0">
             <span
               className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-widest border ${
@@ -154,8 +154,8 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
           </button>
         </div>
 
-        {/* Modal Body - Smooth Inner Scrollable Section */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 min-h-0">
+        {/* Modal Content - Full Unclipped Length */}
+        <div className="p-6 space-y-6">
           {/* Top: Video Trailer preserving exact original aspect ratio with sound */}
           {embedUrl && (
             <div className="space-y-2" ref={videoContainerRef}>
@@ -244,7 +244,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
             )}
           </div>
 
-          {/* Under Video: Film Score Cues Playlist */}
+          {/* Under Video: Film Score Cues Playlist (Renders ALL cues in full view) */}
           {project.scoreCues && project.scoreCues.length > 0 && (
             <div className="pt-6 border-t border-white/10 space-y-3">
               <div className="flex items-center justify-between">
