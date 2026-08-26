@@ -22,6 +22,11 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   const embedUrl = project ? formatVideoEmbedUrl(project.videoUrl) : "";
   const isVideoFile = project ? isDirectVideoFile(project.videoUrl) : false;
 
+  const firstCueId = project && project.scoreCues && project.scoreCues.length > 0
+    ? `${project.id}-${project.scoreCues[0].id}`
+    : "";
+  const isMainCuePlaying = currentTrack?.id === firstCueId && isPlaying;
+
   // Add autoplay with sound (&autoplay=1&mute=0) for embeds
   const autoPlayEmbedUrl = embedUrl
     ? embedUrl.includes("?")
@@ -45,7 +50,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
 
   // Pause global site audio when video modal opens so trailer audio plays clearly
   useEffect(() => {
-    if (project && isPlaying) {
+    if (project && isPlaying && embedUrl) {
       togglePlay();
     }
     setIsDescriptionExpanded(false);
@@ -160,8 +165,8 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
 
         {/* Modal Content - Full Unclipped Length */}
         <div className="p-6 space-y-6">
-          {/* Top: Video Trailer preserving exact original aspect ratio with sound */}
-          {embedUrl && (
+          {/* Top Hero: Video Trailer OR Cinematic Poster Audio Hero when no trailer exists */}
+          {embedUrl ? (
             <div className="space-y-2" ref={videoContainerRef}>
               <div
                 onClick={toggleVideoPlay}
@@ -195,6 +200,54 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
                     referrerPolicy="no-referrer-when-downgrade"
                   />
                 )}
+              </div>
+            </div>
+          ) : (
+            /* Fallback: Cinematic Poster Hero & Audio Score Showcase */
+            <div className="space-y-2">
+              <div
+                onClick={() => {
+                  if (project.scoreCues && project.scoreCues.length > 0) {
+                    handlePlayScoreCue(project.scoreCues[0]);
+                  }
+                }}
+                className="relative w-full aspect-video rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shadow-2xl cursor-pointer group flex items-center justify-center"
+              >
+                <img
+                  src={project.posterUrl}
+                  alt={project.title}
+                  className="w-full h-full object-cover blur-md opacity-30 scale-105 transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
+
+                {/* Poster Centerpiece */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10 space-y-4">
+                  <div className="relative group/poster">
+                    <img
+                      src={project.posterUrl}
+                      alt={project.title}
+                      className="w-28 h-40 sm:w-36 sm:h-52 object-cover rounded-xl shadow-2xl border border-white/10 transition-transform duration-300 group-hover/poster:scale-105"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover/poster:opacity-100 transition-opacity rounded-xl">
+                      <div className="w-12 h-12 rounded-full bg-amber-500 text-zinc-950 flex items-center justify-center shadow-lg">
+                        {isMainCuePlaying ? (
+                          <Pause size={20} fill="currentColor" />
+                        ) : (
+                          <Play size={20} fill="currentColor" className="ml-0.5" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      <Music size={12} /> ORIGINAL MOTION PICTURE SCORE
+                    </span>
+                    <p className="text-xs text-zinc-400 font-mono">
+                      {isMainCuePlaying ? "NOW PLAYING SCORE THEME" : "CLICK TO PLAY MAIN THEME SCORE"}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
