@@ -43,17 +43,25 @@ export const screenProject = defineType({
     }),
     defineField({
       name: "category",
-      title: "Category",
+      title: "Category / Platform",
       type: "string",
       options: {
         list: [
           { title: "Cinema Release", value: "Cinema" },
-          { title: "YouTube / Online Film", value: "YouTube" },
+          { title: "YouTube / Online", value: "YouTube" },
+          { title: "Other / Custom Platform", value: "Other" },
         ],
         layout: "radio",
       },
       initialValue: "Cinema",
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "customCategory",
+      title: "Custom Platform / Category Name",
+      type: "string",
+      description: "Type your platform name (e.g. Netflix, HBO Max, Apple TV+, Short Film, BBC, Sundance, etc.)",
+      hidden: ({ parent }) => parent?.category !== "Other",
     }),
     defineField({
       name: "poster",

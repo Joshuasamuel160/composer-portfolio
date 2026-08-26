@@ -29,7 +29,9 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
               className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-widest border ${
                 project.category === "Cinema"
                   ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
-                  : "bg-red-500/20 text-red-300 border-red-500/30"
+                  : project.category === "YouTube"
+                  ? "bg-red-500/20 text-red-300 border-red-500/30"
+                  : "bg-purple-500/20 text-purple-300 border-purple-500/30"
               }`}
             >
               {project.category}

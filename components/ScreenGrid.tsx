@@ -37,7 +37,9 @@ export const ScreenGrid: React.FC<ScreenGridProps> = ({ projects }) => {
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest backdrop-blur-md border ${
                     project.category === "Cinema"
                       ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
-                      : "bg-red-500/20 text-red-300 border-red-500/30"
+                      : project.category === "YouTube"
+                      ? "bg-red-500/20 text-red-300 border-red-500/30"
+                      : "bg-purple-500/20 text-purple-300 border-purple-500/30"
                   }`}
                 >
                   <Film size={12} />

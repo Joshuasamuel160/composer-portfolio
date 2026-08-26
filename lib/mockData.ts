@@ -38,7 +38,7 @@ export interface ScreenProjectData {
   director?: string;
   executiveProducer?: string;
   productionCompany?: string;
-  category: "Cinema" | "YouTube";
+  category: string;
   posterUrl: string;
   videoUrl: string;
   description: string;
