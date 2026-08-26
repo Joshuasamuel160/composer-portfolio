@@ -121,9 +121,9 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-4xl bg-zinc-950 border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto max-h-[90vh] flex flex-col"
+        className="relative w-full max-w-4xl bg-zinc-950 border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto max-h-[85vh] h-[85vh] flex flex-col min-h-0"
       >
-        {/* Modal Header */}
+        {/* Modal Header (Fixed Header) */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-zinc-900/50 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <span
@@ -154,8 +154,8 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
           </button>
         </div>
 
-        {/* Modal Body - Single Smooth Inner Scrollbar */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-grow">
+        {/* Modal Body - Smooth Inner Scrollable Section */}
+        <div className="p-6 overflow-y-auto space-y-6 flex-1 min-h-0">
           {/* Top: Video Trailer preserving exact original aspect ratio with sound */}
           {embedUrl && (
             <div className="space-y-2" ref={videoContainerRef}>
