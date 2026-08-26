@@ -60,6 +60,12 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   }, [project]);
 
   const toggleVideoPlay = () => {
+    // 1. If global audio score cue is playing, pause global audio first!
+    if (isPlaying) {
+      togglePlay();
+    }
+
+    // 2. Toggle video play state
     if (videoRef.current) {
       if (videoRef.current.paused) {
         videoRef.current.play().catch(() => {});
@@ -69,6 +75,28 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
         setIsVideoPlaying(false);
       }
     }
+  };
+
+  const handlePlayScoreCue = (cue: { id: string; title: string; duration: string; audioUrl: string }) => {
+    if (!project) return;
+
+    // 1. Pause video trailer immediately when playing a score cue track!
+    if (videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+      setIsVideoPlaying(false);
+    }
+
+    // 2. Play the selected score cue audio track
+    const cueTrackId = `${project.id}-${cue.id}`;
+    playTrack({
+      id: cueTrackId,
+      title: cue.title,
+      artist: project.title,
+      role: `${project.role} (${project.year})`,
+      coverUrl: project.posterUrl,
+      audioUrl: cue.audioUrl,
+      year: project.year,
+    });
   };
 
   if (!project) return null;
@@ -96,7 +124,10 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
           </div>
 
           <button
-            onClick={onClose}
+            onClick={() => {
+              if (videoRef.current) videoRef.current.pause();
+              onClose();
+            }}
             className="p-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
             aria-label="Close modal"
           >
@@ -197,17 +228,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
                   return (
                     <div
                       key={cue.id}
-                      onClick={() =>
-                        playTrack({
-                          id: cueTrackId,
-                          title: cue.title,
-                          artist: project.title,
-                          role: `${project.role} (${project.year})`,
-                          coverUrl: project.posterUrl,
-                          audioUrl: cue.audioUrl,
-                          year: project.year,
-                        })
-                      }
+                      onClick={() => handlePlayScoreCue(cue)}
                       className={`flex items-center justify-between p-3 rounded-2xl border text-xs sm:text-sm cursor-pointer transition-all duration-200 ${
                         isCuePlaying
                           ? "bg-amber-500/15 border-amber-500/50 text-amber-300 shadow-md shadow-amber-500/10"
