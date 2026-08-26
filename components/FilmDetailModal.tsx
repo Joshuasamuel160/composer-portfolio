@@ -12,7 +12,7 @@ interface FilmDetailModalProps {
 }
 
 export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClose }) => {
-  const { currentTrack, isPlaying, playTrack } = useAudio();
+  const { currentTrack, isPlaying, playTrack, togglePlay } = useAudio();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const videoContainerRef = useRef<HTMLDivElement | null>(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
@@ -20,12 +20,19 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   const embedUrl = project ? formatVideoEmbedUrl(project.videoUrl) : "";
   const isVideoFile = project ? isDirectVideoFile(project.videoUrl) : false;
 
-  // Add Netflix-style autoplay with ?autoplay=1 for embeds
+  // Add autoplay with sound (&autoplay=1&mute=0) for embeds
   const autoPlayEmbedUrl = embedUrl
     ? embedUrl.includes("?")
-      ? `${embedUrl}&autoplay=1`
-      : `${embedUrl}?autoplay=1`
+      ? `${embedUrl}&autoplay=1&mute=0`
+      : `${embedUrl}?autoplay=1&mute=0`
     : "";
+
+  // Pause global site audio when video modal opens so trailer audio plays clearly
+  useEffect(() => {
+    if (project && isPlaying) {
+      togglePlay();
+    }
+  }, [project]);
 
   // Netflix-style scroll listener: pause video when scrolled out of view
   useEffect(() => {
@@ -99,12 +106,12 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
 
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto space-y-6">
-          {/* Top: Minimal Netflix-Style Video Trailer */}
+          {/* Top: Video Trailer preserving exact original aspect ratio with sound */}
           {embedUrl && (
             <div className="space-y-2" ref={videoContainerRef}>
               <div
                 onClick={toggleVideoPlay}
-                className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg cursor-pointer group"
+                className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg cursor-pointer group flex items-center justify-center"
               >
                 {isVideoFile ? (
                   <>
@@ -113,9 +120,9 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
                       src={embedUrl}
                       autoPlay
                       loop
-                      muted
+                      muted={false}
                       playsInline
-                      className="w-full h-full object-cover bg-black"
+                      className="w-full h-full object-contain bg-black"
                     />
                     {!isVideoPlaying && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-xs">
@@ -129,8 +136,8 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
                   <iframe
                     src={autoPlayEmbedUrl}
                     title={project.title}
-                    className="w-full h-full border-0 pointer-events-none scale-[1.05]"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    className="w-full h-full border-0 object-contain"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; autoplay"
                     referrerPolicy="no-referrer-when-downgrade"
                   />
                 )}
