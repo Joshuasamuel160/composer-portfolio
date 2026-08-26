@@ -140,7 +140,7 @@ export async function getScreenProjects(): Promise<ScreenProjectData[]> {
       director: sp.director,
       executiveProducer: sp.executiveProducer,
       productionCompany: sp.productionCompany,
-      category: (sp.category === "Other" && sp.customCategory ? sp.customCategory : sp.category) || "Cinema",
+      category: (sp.customCategory && sp.customCategory.trim() !== "" ? sp.customCategory : sp.category) || "Cinema",
       posterUrl: sp.posterUrl || mockScreenProjects[index % mockScreenProjects.length].posterUrl,
       videoUrl: sp.videoFileUrl || sp.videoUrl || mockScreenProjects[index % mockScreenProjects.length].videoUrl,
       description: sp.description,

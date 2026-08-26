@@ -98,18 +98,14 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
                     className="w-full h-full object-contain bg-black"
                   />
                 ) : (
-                  <>
                     <iframe
                       src={autoPlayEmbedUrl}
                       title={project.title}
-                      className="w-full h-full border-0 scale-[1.02] transition-transform"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                       referrerPolicy="no-referrer-when-downgrade"
                       allowFullScreen
                     />
-                    {/* Top Mask Overlay to hide YouTube channel title bar */}
-                    <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-zinc-950/90 via-zinc-950/40 to-transparent pointer-events-none z-10" />
-                  </>
                 )}
               </div>
               {project.videoUrl && !isVideoFile && (
