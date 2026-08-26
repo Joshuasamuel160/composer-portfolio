@@ -15,6 +15,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   const { currentTrack, isPlaying, playTrack, togglePlay } = useAudio();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const videoContainerRef = useRef<HTMLDivElement | null>(null);
+  const modalOverlayRef = useRef<HTMLDivElement | null>(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
@@ -27,6 +28,13 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
       ? `${embedUrl}&autoplay=1&mute=0`
       : `${embedUrl}?autoplay=1&mute=0`
     : "";
+
+  // Scroll overlay to top whenever a project is opened
+  useEffect(() => {
+    if (project && modalOverlayRef.current) {
+      modalOverlayRef.current.scrollTop = 0;
+    }
+  }, [project]);
 
   // Pause global site audio when video modal opens so trailer audio plays clearly
   useEffect(() => {
@@ -101,6 +109,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
 
   return (
     <div
+      ref={modalOverlayRef}
       onClick={() => {
         if (videoRef.current) videoRef.current.pause();
         onClose();
