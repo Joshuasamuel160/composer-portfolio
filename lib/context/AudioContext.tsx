@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useRef } from "react";
+import React, { createContext, useContext, useState, useRef, useEffect } from "react";
 import { SongData } from "../mockData";
 
 export interface Track {
@@ -50,6 +50,13 @@ function normalizeTrack(track: Track | SongData): Track {
   };
 }
 
+declare global {
+  interface Window {
+    onYouTubeIframeAPIReady?: () => void;
+    YT?: any;
+  }
+}
+
 export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -58,76 +65,153 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [volume, setVolumeState] = useState<number>(0.85);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const ytPlayerRef = useRef<any>(null);
+  const ytTimerRef = useRef<any>(null);
+
   const ytId = currentTrack ? extractYouTubeId(currentTrack.audioUrl) : null;
 
-  const safePlay = async () => {
-    if (ytId) {
-      setIsPlaying(true);
-      return;
+  // Load YouTube IFrame API script once
+  useEffect(() => {
+    if (typeof window !== "undefined" && !window.YT) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName("script")[0];
+      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
     }
-    if (!audioRef.current) return;
-    try {
-      await audioRef.current.play();
-      setIsPlaying(true);
-    } catch (err) {
-      console.warn("Audio playback error:", err);
-      setIsPlaying(false);
+  }, []);
+
+  // Poll YouTube player progress when playing YT track
+  useEffect(() => {
+    if (ytId && isPlaying) {
+      ytTimerRef.current = setInterval(() => {
+        if (ytPlayerRef.current && typeof ytPlayerRef.current.getCurrentTime === "function") {
+          const cur = ytPlayerRef.current.getCurrentTime();
+          const dur = ytPlayerRef.current.getDuration();
+          if (cur) setCurrentTime(cur);
+          if (dur) setDuration(dur);
+        }
+      }, 300);
+    } else {
+      if (ytTimerRef.current) clearInterval(ytTimerRef.current);
     }
+    return () => {
+      if (ytTimerRef.current) clearInterval(ytTimerRef.current);
+    };
+  }, [ytId, isPlaying]);
+
+  const initYtPlayer = (videoId: string) => {
+    if (typeof window === "undefined") return;
+
+    const createNewPlayer = () => {
+      if (window.YT && window.YT.Player) {
+        if (ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === "function") {
+          ytPlayerRef.current.loadVideoById(videoId);
+          ytPlayerRef.current.setVolume(volume * 100);
+          setIsPlaying(true);
+        } else {
+          ytPlayerRef.current = new window.YT.Player("yt-audio-player-container", {
+            height: "0",
+            width: "0",
+            videoId: videoId,
+            playerVars: {
+              autoplay: 1,
+              controls: 0,
+            },
+            events: {
+              onReady: (event: any) => {
+                event.target.setVolume(volume * 100);
+                event.target.playVideo();
+                setIsPlaying(true);
+              },
+              onStateChange: (event: any) => {
+                if (window.YT && event.data === window.YT.PlayerState.ENDED) {
+                  setIsPlaying(false);
+                  setCurrentTime(0);
+                }
+              },
+            },
+          });
+        }
+      } else {
+        setTimeout(createNewPlayer, 200);
+      }
+    };
+
+    createNewPlayer();
   };
 
   const playTrack = (inputTrack: Track | SongData) => {
     const track = normalizeTrack(inputTrack);
-    if (!track.audioUrl) {
-      console.warn("No audio URL provided for track:", track.title);
-      return;
-    }
+    if (!track.audioUrl) return;
+
+    const newYtId = extractYouTubeId(track.audioUrl);
 
     if (currentTrack?.id === track.id) {
-      if (isPlaying) {
-        if (audioRef.current && !ytId) audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        safePlay();
-      }
+      togglePlay();
     } else {
-      // Pause existing native audio if switching
-      if (audioRef.current) {
-        audioRef.current.pause();
+      // Pause previous playing source
+      if (audioRef.current) audioRef.current.pause();
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === "function") {
+        ytPlayerRef.current.pauseVideo();
       }
+
       setCurrentTrack(track);
-      const newYtId = extractYouTubeId(track.audioUrl);
-      if (!newYtId && audioRef.current) {
-        audioRef.current.src = track.audioUrl;
-        audioRef.current.volume = volume;
+
+      if (newYtId) {
+        initYtPlayer(newYtId);
+      } else {
+        if (audioRef.current) {
+          audioRef.current.src = track.audioUrl;
+          audioRef.current.volume = volume;
+          audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+        }
       }
-      safePlay();
     }
   };
 
   const togglePlay = () => {
     if (!currentTrack) return;
+
     if (isPlaying) {
-      if (audioRef.current && !ytId) audioRef.current.pause();
+      if (ytId && ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === "function") {
+        ytPlayerRef.current.pauseVideo();
+      } else if (audioRef.current) {
+        audioRef.current.pause();
+      }
       setIsPlaying(false);
     } else {
-      safePlay();
+      if (ytId && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === "function") {
+        ytPlayerRef.current.playVideo();
+        setIsPlaying(true);
+      } else if (audioRef.current) {
+        audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+      }
     }
   };
 
   const seek = (time: number) => {
-    if (!audioRef.current || ytId) return;
-    audioRef.current.currentTime = time;
     setCurrentTime(time);
+    if (ytId && ytPlayerRef.current && typeof ytPlayerRef.current.seekTo === "function") {
+      ytPlayerRef.current.seekTo(time, true);
+    } else if (audioRef.current) {
+      audioRef.current.currentTime = time;
+    }
   };
 
   const setVolume = (vol: number) => {
     setVolumeState(vol);
+    if (ytId && ytPlayerRef.current && typeof ytPlayerRef.current.setVolume === "function") {
+      ytPlayerRef.current.setVolume(vol * 100);
+    }
     if (audioRef.current) {
       audioRef.current.volume = vol;
     }
   };
 
   const closePlayer = () => {
+    if (ytPlayerRef.current && typeof ytPlayerRef.current.stopVideo === "function") {
+      ytPlayerRef.current.stopVideo();
+    }
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
@@ -154,31 +238,24 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     >
       {children}
       {/* HTML5 Native Audio Player for MP3 files */}
-      {!ytId && (
-        <audio
-          ref={audioRef}
-          preload="auto"
-          onTimeUpdate={() => {
-            if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
-          }}
-          onLoadedMetadata={() => {
-            if (audioRef.current) setDuration(audioRef.current.duration || 0);
-          }}
-          onEnded={() => {
+      <audio
+        ref={audioRef}
+        preload="auto"
+        onTimeUpdate={() => {
+          if (!ytId && audioRef.current) setCurrentTime(audioRef.current.currentTime);
+        }}
+        onLoadedMetadata={() => {
+          if (!ytId && audioRef.current) setDuration(audioRef.current.duration || 0);
+        }}
+        onEnded={() => {
+          if (!ytId) {
             setIsPlaying(false);
             setCurrentTime(0);
-          }}
-        />
-      )}
-      {/* Hidden YouTube Stream Iframe for YouTube Music links */}
-      {ytId && isPlaying && (
-        <iframe
-          src={`https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&enablejsapi=1`}
-          allow="autoplay"
-          className="hidden"
-          title="YouTube Audio Stream"
-        />
-      )}
+          }
+        }}
+      />
+      {/* Hidden YouTube IFrame API Player Container */}
+      <div id="yt-audio-player-container" className="hidden" />
     </AudioContext.Provider>
   );
 };
