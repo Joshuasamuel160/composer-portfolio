@@ -28,18 +28,6 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
       : `${embedUrl}?autoplay=1&mute=0`
     : "";
 
-  // Lock background body scroll when modal is open
-  useEffect(() => {
-    if (project) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [project]);
-
   // Pause global site audio when video modal opens so trailer audio plays clearly
   useEffect(() => {
     if (project && isPlaying) {
@@ -117,7 +105,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
         if (videoRef.current) videoRef.current.pause();
         onClose();
       }}
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/90 backdrop-blur-md p-4 sm:p-6 sm:py-12 flex justify-center items-start"
+      className="fixed inset-0 z-50 overflow-y-scroll bg-black/90 backdrop-blur-md p-4 sm:p-6 sm:py-12 flex justify-center items-start"
     >
       <div
         onClick={(e) => e.stopPropagation()}
