@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { ScreenProjectData } from "@/lib/mockData";
 import { useAudio } from "@/lib/context/AudioContext";
 import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
@@ -13,11 +13,43 @@ interface FilmDetailModalProps {
 
 export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClose }) => {
   const { currentTrack, isPlaying, playTrack } = useAudio();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const embedUrl = project ? formatVideoEmbedUrl(project.videoUrl) : "";
+  const isVideoFile = project ? isDirectVideoFile(project.videoUrl) : false;
+
+  // Add Netflix-style autoplay with ?autoplay=1 for embeds
+  const autoPlayEmbedUrl = embedUrl
+    ? embedUrl.includes("?")
+      ? `${embedUrl}&autoplay=1`
+      : `${embedUrl}?autoplay=1`
+    : "";
+
+  // Netflix-style scroll listener: pause video when scrolled out of view
+  useEffect(() => {
+    if (!videoContainerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (videoRef.current) {
+            if (entry.isIntersecting) {
+              videoRef.current.play().catch(() => {});
+            } else {
+              videoRef.current.pause();
+            }
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    observer.observe(videoContainerRef.current);
+    return () => observer.disconnect();
+  }, [project]);
 
   if (!project) return null;
-
-  const embedUrl = formatVideoEmbedUrl(project.videoUrl);
-  const isVideoFile = isDirectVideoFile(project.videoUrl);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md overflow-y-auto">
@@ -54,18 +86,21 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
         <div className="p-6 overflow-y-auto space-y-6">
           {/* Top: Video Trailer / Clip Embed or HTML5 Video */}
           {embedUrl && (
-            <div className="space-y-2">
+            <div className="space-y-2" ref={videoContainerRef}>
               <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg group">
                 {isVideoFile ? (
                   <video
+                    ref={videoRef}
                     src={embedUrl}
                     controls
+                    autoPlay
+                    playsInline
                     className="w-full h-full object-contain bg-black"
                   />
                 ) : (
                   <>
                     <iframe
-                      src={embedUrl}
+                      src={autoPlayEmbedUrl}
                       title={project.title}
                       className="w-full h-full border-0 scale-[1.02] transition-transform"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
