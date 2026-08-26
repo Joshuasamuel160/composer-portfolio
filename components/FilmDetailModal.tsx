@@ -16,6 +16,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const videoContainerRef = useRef<HTMLDivElement | null>(null);
   const [isVideoPlaying, setIsVideoPlaying] = useState(true);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const embedUrl = project ? formatVideoEmbedUrl(project.videoUrl) : "";
   const isVideoFile = project ? isDirectVideoFile(project.videoUrl) : false;
@@ -32,6 +33,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
     if (project && isPlaying) {
       togglePlay();
     }
+    setIsDescriptionExpanded(false);
   }, [project]);
 
   // Netflix-style scroll listener: pause video when scrolled out of view
@@ -60,12 +62,10 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   }, [project]);
 
   const toggleVideoPlay = () => {
-    // 1. If global audio score cue is playing, pause global audio first!
     if (isPlaying) {
       togglePlay();
     }
 
-    // 2. Toggle video play state
     if (videoRef.current) {
       if (videoRef.current.paused) {
         videoRef.current.play().catch(() => {});
@@ -80,13 +80,11 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   const handlePlayScoreCue = (cue: { id: string; title: string; duration: string; audioUrl: string }) => {
     if (!project) return;
 
-    // 1. Pause video trailer immediately when playing a score cue track!
     if (videoRef.current && !videoRef.current.paused) {
       videoRef.current.pause();
       setIsVideoPlaying(false);
     }
 
-    // 2. Play the selected score cue audio track
     const cueTrackId = `${project.id}-${cue.id}`;
     playTrack({
       id: cueTrackId,
@@ -203,9 +201,26 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
               </div>
             )}
 
-            <p className="text-sm text-zinc-300 font-light leading-relaxed pt-1">
-              {project.description}
-            </p>
+            {/* Description with 2-3 Lines + Read More Toggle */}
+            {project.description && (
+              <div className="space-y-1 pt-1">
+                <p
+                  className={`text-sm text-zinc-300 font-light leading-relaxed transition-all duration-300 ${
+                    !isDescriptionExpanded ? "line-clamp-2" : ""
+                  }`}
+                >
+                  {project.description}
+                </p>
+                {project.description.length > 100 && (
+                  <button
+                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                    className="text-xs font-mono text-amber-400 hover:text-amber-300 underline underline-offset-4 focus:outline-none transition-colors"
+                  >
+                    {isDescriptionExpanded ? "Show Less" : "Read More"}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Under Video: Film Score Cues Playlist */}
