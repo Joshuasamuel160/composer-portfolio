@@ -28,6 +28,18 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
       : `${embedUrl}?autoplay=1&mute=0`
     : "";
 
+  // Lock body scroll when modal is open to eliminate double scrollbars
+  useEffect(() => {
+    if (project) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [project]);
+
   // Pause global site audio when video modal opens so trailer audio plays clearly
   useEffect(() => {
     if (project && isPlaying) {
@@ -100,10 +112,19 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   if (!project) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-4xl bg-zinc-950 border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto max-h-[90vh] flex flex-col">
+    <div
+      onClick={() => {
+        if (videoRef.current) videoRef.current.pause();
+        onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md overflow-hidden"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-4xl bg-zinc-950 border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto max-h-[90vh] flex flex-col"
+      >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-zinc-900/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-zinc-900/50 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <span
               className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-widest border ${
@@ -133,8 +154,8 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-6">
+        {/* Modal Body - Single Smooth Inner Scrollbar */}
+        <div className="p-6 overflow-y-auto space-y-6 flex-grow">
           {/* Top: Video Trailer preserving exact original aspect ratio with sound */}
           {embedUrl && (
             <div className="space-y-2" ref={videoContainerRef}>
