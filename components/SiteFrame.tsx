@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Navbar } from "./Navbar";
 import { GlobalAudioPlayer } from "./GlobalAudioPlayer";
@@ -9,6 +9,13 @@ import { VisualEditing } from "@sanity/visual-editing/react";
 export const SiteFrame: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const isStudio = pathname?.startsWith("/studio");
+  const [isInIframe, setIsInIframe] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsInIframe(window.self !== window.top);
+    }
+  }, []);
 
   if (isStudio) {
     return <>{children}</>;
@@ -25,7 +32,8 @@ export const SiteFrame: React.FC<{ children: React.ReactNode }> = ({ children })
         </div>
       </footer>
       <GlobalAudioPlayer />
-      <VisualEditing portal={true} />
+      {/* Only render blue editing highlights inside Sanity Studio preview iframe */}
+      {isInIframe && <VisualEditing portal={true} />}
     </>
   );
 };
