@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { ScreenProjectData } from "@/lib/mockData";
 import { useAudio } from "@/lib/context/AudioContext";
 import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
-import { X, Play, Pause, Music, ExternalLink } from "lucide-react";
+import { X, Play, Pause, Music } from "lucide-react";
 
 interface FilmDetailModalProps {
   project: ScreenProjectData | null;
@@ -15,6 +15,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   const { currentTrack, isPlaying, playTrack } = useAudio();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const videoContainerRef = useRef<HTMLDivElement | null>(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
 
   const embedUrl = project ? formatVideoEmbedUrl(project.videoUrl) : "";
   const isVideoFile = project ? isDirectVideoFile(project.videoUrl) : false;
@@ -36,8 +37,10 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
           if (videoRef.current) {
             if (entry.isIntersecting) {
               videoRef.current.play().catch(() => {});
+              setIsVideoPlaying(true);
             } else {
               videoRef.current.pause();
+              setIsVideoPlaying(false);
             }
           }
         });
@@ -48,6 +51,18 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
     observer.observe(videoContainerRef.current);
     return () => observer.disconnect();
   }, [project]);
+
+  const toggleVideoPlay = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play().catch(() => {});
+        setIsVideoPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsVideoPlaying(false);
+      }
+    }
+  };
 
   if (!project) return null;
 
@@ -84,42 +99,42 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
 
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto space-y-6">
-          {/* Top: Video Trailer / Clip Embed or HTML5 Video */}
+          {/* Top: Minimal Netflix-Style Video Trailer */}
           {embedUrl && (
             <div className="space-y-2" ref={videoContainerRef}>
-              <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg group">
+              <div
+                onClick={toggleVideoPlay}
+                className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg cursor-pointer group"
+              >
                 {isVideoFile ? (
-                  <video
-                    ref={videoRef}
-                    src={embedUrl}
-                    controls
-                    autoPlay
-                    playsInline
-                    className="w-full h-full object-contain bg-black"
-                  />
-                ) : (
-                    <iframe
-                      src={autoPlayEmbedUrl}
-                      title={project.title}
-                      className="w-full h-full border-0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-                      referrerPolicy="no-referrer-when-downgrade"
-                      allowFullScreen
+                  <>
+                    <video
+                      ref={videoRef}
+                      src={embedUrl}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover bg-black"
                     />
+                    {!isVideoPlaying && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-xs">
+                        <div className="w-14 h-14 rounded-full bg-amber-500/90 text-zinc-950 flex items-center justify-center shadow-xl">
+                          <Play size={24} fill="currentColor" className="ml-1" />
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <iframe
+                    src={autoPlayEmbedUrl}
+                    title={project.title}
+                    className="w-full h-full border-0 pointer-events-none scale-[1.05]"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
                 )}
               </div>
-              {project.videoUrl && !isVideoFile && (
-                <div className="flex justify-end">
-                  <a
-                    href={project.videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 hover:text-amber-400 transition-colors"
-                  >
-                    Watch video directly on YouTube / External Link <ExternalLink size={12} />
-                  </a>
-                </div>
-              )}
             </div>
           )}
 
