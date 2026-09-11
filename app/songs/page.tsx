@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getAlbums, getSongs } from "@/lib/sanity/fetch";
+import { getAlbums, getSongs, getArtists } from "@/lib/sanity/fetch";
 import { SongsClient } from "./SongsClient";
 import { ScrollAnimation } from "@/components/ScrollAnimation";
 
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 export default async function SongsPage() {
   const albums = await getAlbums();
   const songs = await getSongs();
+  const artists = await getArtists();
 
   return (
     <div className="py-20 px-6 max-w-7xl mx-auto space-y-8">
@@ -31,7 +32,7 @@ export default async function SongsPage() {
       </ScrollAnimation>
 
       {/* Album & Soundtrack Client Component */}
-      <SongsClient albums={albums} songs={songs} />
+      <SongsClient albums={albums} songs={songs} artists={artists} />
     </div>
   );
 }

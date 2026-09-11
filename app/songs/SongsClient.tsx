@@ -1,25 +1,27 @@
 "use client";
 
 import React, { useState } from "react";
-import { AlbumData, SongData } from "@/lib/mockData";
+import { AlbumData, SongData, ArtistData } from "@/lib/mockData";
+import { ArtistStrip } from "@/components/ArtistStrip";
 import { useAudio } from "@/lib/context/AudioContext";
-import { Play, Pause, Music, Disc, ChevronDown, ChevronUp } from "lucide-react";
+import { Play, Pause, Disc, ChevronDown, ChevronUp } from "lucide-react";
 
 interface SongsClientProps {
   albums: AlbumData[];
   songs: SongData[];
+  artists: ArtistData[];
 }
 
-export const SongsClient: React.FC<SongsClientProps> = ({ albums, songs }) => {
+export const SongsClient: React.FC<SongsClientProps> = ({ albums, songs, artists }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
-  const [selectedStudio, setSelectedStudio] = useState<string>("ALL");
+  const [selectedArtistId, setSelectedArtistId] = useState<string | null>(null);
   const [expandedAlbumId, setExpandedAlbumId] = useState<string | null>(albums[0]?.id || null);
   const { currentTrack, isPlaying, playTrack } = useAudio();
 
-  // Extract unique Film Companies / Studios / Artists
-  const uniqueStudios = Array.from(new Set(albums.map((a) => a.artistName))).filter(Boolean);
+  // Selected Artist Name if filtering by artist badge
+  const selectedArtist = artists.find((a) => a.id === selectedArtistId);
 
-  // Filter Albums by Category & Studio
+  // Filter Albums by Category & Selected Artist Badge
   const filteredAlbums = albums.filter((alb) => {
     const matchesCategory =
       selectedCategory === "ALL"
@@ -28,9 +30,14 @@ export const SongsClient: React.FC<SongsClientProps> = ({ albums, songs }) => {
         ? alb.category === "Film Soundtrack"
         : alb.category !== "Film Soundtrack";
 
-    const matchesStudio = selectedStudio === "ALL" || alb.artistName === selectedStudio;
+    const matchesArtist =
+      selectedArtistId === null
+        ? true
+        : selectedArtist
+        ? alb.artistName.toLowerCase().includes(selectedArtist.name.toLowerCase()) || alb.artistId === selectedArtist.id
+        : true;
 
-    return matchesCategory && matchesStudio;
+    return matchesCategory && matchesArtist;
   });
 
   const toggleAlbumExpand = (id: string) => {
@@ -38,59 +45,44 @@ export const SongsClient: React.FC<SongsClientProps> = ({ albums, songs }) => {
   };
 
   return (
-    <div className="space-y-10">
-      {/* Category & Studio Filter Controls */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-4 border-b border-white/5">
-        {/* Left Category Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
-          {[
-            { id: "ALL", label: "ALL DISCOGRAPHY" },
-            { id: "SOUNDTRACKS", label: "FILM SOUNDTRACKS" },
-            { id: "ALBUMS", label: "ALBUMS & EPs" },
-          ].map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-full text-xs font-mono tracking-wider uppercase transition-all flex-shrink-0 ${
-                selectedCategory === cat.id
-                  ? "bg-amber-500 text-zinc-950 font-semibold shadow-lg shadow-amber-500/20"
-                  : "bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/5"
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
+    <div className="space-y-8">
+      {/* Floating Artist Badges Strip */}
+      {artists && artists.length > 0 && (
+        <ArtistStrip
+          artists={artists}
+          selectedArtistId={selectedArtistId}
+          onSelectArtist={(id) => setSelectedArtistId(id)}
+        />
+      )}
 
-        {/* Right Studio / Company Filter Dropdown */}
-        {uniqueStudios.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-zinc-500 uppercase tracking-wider hidden sm:inline">
-              ARTIST / STUDIO:
-            </span>
-            <select
-              value={selectedStudio}
-              onChange={(e) => setSelectedStudio(e.target.value)}
-              className="bg-zinc-900 text-xs font-mono text-zinc-200 border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500/50"
-            >
-              <option value="ALL">ALL STUDIOS & ARTISTS ({uniqueStudios.length})</option>
-              {uniqueStudios.map((studio) => (
-                <option key={studio} value={studio}>
-                  {studio}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+      {/* Category Filter Controls */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-white/5">
+        {[
+          { id: "ALL", label: "ALL DISCOGRAPHY" },
+          { id: "SOUNDTRACKS", label: "FILM SOUNDTRACKS" },
+          { id: "ALBUMS", label: "ALBUMS & EPs" },
+        ].map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id)}
+            className={`px-4 py-2 rounded-full text-xs font-mono tracking-wider uppercase transition-all flex-shrink-0 ${
+              selectedCategory === cat.id
+                ? "bg-amber-500 text-zinc-950 font-semibold shadow-lg shadow-amber-500/20"
+                : "bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/5"
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
       </div>
 
       {/* Album & Soundtrack Grid */}
       {filteredAlbums.length === 0 ? (
         <div className="py-20 text-center text-zinc-500 font-light font-mono">
-          No albums or soundtracks found for this selected filter.
+          No albums or soundtracks found for this selected artist or category.
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {filteredAlbums.map((album) => {
             const isExpanded = expandedAlbumId === album.id;
             const hasTracks = album.tracks && album.tracks.length > 0;
