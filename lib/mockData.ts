@@ -21,6 +21,27 @@ export interface SongData {
   audioUrl: string;
   embedUrl?: string;
   releaseYear: string;
+  albumId?: string;
+  albumTitle?: string;
+}
+
+export interface AlbumTrack {
+  id: string;
+  title: string;
+  role: string;
+  audioUrl: string;
+  duration?: string;
+}
+
+export interface AlbumData {
+  id: string;
+  title: string;
+  artistId?: string;
+  artistName: string;
+  coverUrl: string;
+  releaseYear: string;
+  category: string;
+  tracks: AlbumTrack[];
 }
 
 export interface ScoreCue {

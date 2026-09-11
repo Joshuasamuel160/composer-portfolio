@@ -1,21 +1,18 @@
 import { createClient } from "next-sanity";
 import {
-  mockBio,
-  mockBrands,
-  mockArtists,
-  mockSongs,
-  mockScreenProjects,
-  mockAds,
-  mockFeaturedWork,
-  mockHeroPiece,
-  mockHeroReels,
+  ScreenProjectData,
+  SongData,
+  AlbumData,
+  AdCampaignData,
   BrandData,
   ArtistData,
-  SongData,
-  ScreenProjectData,
-  AdCampaignData,
   BioData,
-  FeaturedWorkItem
+  mockScreenProjects,
+  mockSongs,
+  mockAds,
+  mockBrands,
+  mockArtists,
+  mockBio,
 } from "../mockData";
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "50173b3c";
@@ -33,30 +30,6 @@ export const client = createClient({
   },
 });
 
-export async function getBio(): Promise<BioData> {
-  try {
-    const data = await client.fetch(
-      `*[_type == "bio"][0] {
-        name,
-        tagline,
-        "photoUrl": photo.asset->url,
-        paragraphs
-      }`,
-      {},
-      { next: { revalidate: 0 } }
-    );
-    if (!data || !data.name) return mockBio;
-    return {
-      name: data.name || mockBio.name,
-      tagline: data.tagline || mockBio.tagline,
-      photoUrl: data.photoUrl || mockBio.photoUrl,
-      paragraphs: data.paragraphs && data.paragraphs.length > 0 ? data.paragraphs : mockBio.paragraphs,
-    };
-  } catch {
-    return mockBio;
-  }
-}
-
 export async function getBrands(): Promise<BrandData[]> {
   try {
     const data = await client.fetch(
@@ -70,7 +43,7 @@ export async function getBrands(): Promise<BrandData[]> {
     );
     if (!data || data.length === 0) return mockBrands;
     return data.map((b: any, index: number) => ({
-      id: b._id || `b-${index}`,
+      id: b._id || `brand-${index}`,
       name: b.name,
       logoUrl: b.logoUrl || mockBrands[index % mockBrands.length].logoUrl,
     }));
@@ -158,9 +131,82 @@ export async function getScreenProjects(): Promise<ScreenProjectData[]> {
   }
 }
 
+export async function getAlbums(): Promise<AlbumData[]> {
+  try {
+    // 1. Fetch Sanity standalone Album documents
+    const sanityAlbumsData = await client.fetch(
+      `*[_type == "album"] | order(order asc) {
+        _id,
+        title,
+        "artistId": artist._ref,
+        "artistNameRef": artist->name,
+        artistName,
+        "coverUrl": coverImage.asset->url,
+        releaseYear,
+        category,
+        tracks[] {
+          _key,
+          title,
+          role,
+          audioUrl,
+          "audioFileUrl": audioFile.asset->url
+        }
+      }`,
+      {},
+      { next: { revalidate: 0 } }
+    );
+
+    const sanityAlbums: AlbumData[] = (sanityAlbumsData || []).map((alb: any, idx: number) => ({
+      id: alb._id || `alb-san-${idx}`,
+      title: alb.title,
+      artistId: alb.artistId || `art-alb-${idx}`,
+      artistName: alb.artistNameRef || alb.artistName || "Julian Vance",
+      coverUrl: alb.coverUrl || "",
+      releaseYear: alb.releaseYear || "2024",
+      category: alb.category || "Album",
+      tracks: (alb.tracks || []).map((t: any, tIdx: number) => ({
+        id: t._key || `t-${idx}-${tIdx}`,
+        title: t.title,
+        role: t.role || "Composer / Producer",
+        audioUrl: t.audioFileUrl || t.audioUrl || "",
+      })),
+    }));
+
+    // 2. Fetch Screen Projects and turn each into an Album (Soundtrack) under its Film Company/Studio
+    const screenProjects = await getScreenProjects();
+    const movieSoundtracks: AlbumData[] = [];
+
+    screenProjects.forEach((sp) => {
+      if (sp.scoreCues && sp.scoreCues.length > 0) {
+        movieSoundtracks.push({
+          id: `alb-sp-${sp.id}`,
+          title: `${sp.title} (Original Motion Picture Soundtrack)`,
+          artistId: `studio-${sp.id}`,
+          artistName: sp.productionCompany || sp.director || "Film Production Co.",
+          coverUrl: sp.posterUrl,
+          releaseYear: sp.year,
+          category: "Film Soundtrack",
+          tracks: sp.scoreCues.map((cue) => ({
+            id: `${sp.id}-${cue.id}`,
+            title: cue.title,
+            role: `${sp.role} (${sp.year})`,
+            audioUrl: cue.audioUrl,
+            duration: cue.duration,
+          })),
+        });
+      }
+    });
+
+    const combined = [...movieSoundtracks, ...sanityAlbums];
+    return combined;
+  } catch (err) {
+    console.error("Error fetching albums:", err);
+    return [];
+  }
+}
+
 export async function getSongs(): Promise<SongData[]> {
   try {
-    // 1. Fetch standalone Song documents
     const songData = await client.fetch(
       `*[_type == "song"] | order(order asc) {
         _id,
@@ -193,7 +239,6 @@ export async function getSongs(): Promise<SongData[]> {
       }));
     }
 
-    // 2. Fetch score cue tracks from Screen Projects and convert them to SongData
     const screenProjects = await getScreenProjects();
     const movieCueSongs: SongData[] = [];
 
@@ -205,7 +250,7 @@ export async function getSongs(): Promise<SongData[]> {
               id: `cue-${proj.id}-${cue.id}`,
               title: cue.title,
               artistId: proj.id,
-              artistName: proj.title,
+              artistName: proj.productionCompany || proj.title,
               role: `${proj.role} (${proj.year})`,
               coverUrl: proj.posterUrl,
               audioUrl: cue.audioUrl,
@@ -221,6 +266,18 @@ export async function getSongs(): Promise<SongData[]> {
     return combined;
   } catch {
     return mockSongs;
+  }
+}
+
+export async function getHeroReels(): Promise<SongData[]> {
+  try {
+    const songs = await getSongs();
+    if (songs && songs.length > 0) {
+      return songs.slice(0, 4);
+    }
+    return mockSongs.slice(0, 4);
+  } catch {
+    return mockSongs.slice(0, 4);
   }
 }
 
@@ -251,48 +308,26 @@ export async function getAds(): Promise<AdCampaignData[]> {
   }
 }
 
-export async function getFeaturedWork(): Promise<FeaturedWorkItem[]> {
+export async function getBio(): Promise<BioData> {
   try {
     const data = await client.fetch(
-      `*[_type == "featuredWork"] | order(order asc) {
-        _id,
-        title,
-        category,
-        role,
-        "image": image.asset->url,
-        link,
-        description
+      `*[_type == "bio"][0] {
+        name,
+        tagline,
+        "photoUrl": photo.asset->url,
+        paragraphs
       }`,
       {},
       { next: { revalidate: 0 } }
     );
-    if (!data || data.length === 0) return mockFeaturedWork;
-    return data.map((fw: any, index: number) => ({
-      id: fw._id || `fw-${index}`,
-      title: fw.title,
-      category: fw.category,
-      role: fw.role,
-      image: fw.image || mockFeaturedWork[index % mockFeaturedWork.length].image,
-      link: fw.link || "/screen",
-      description: fw.description || "",
-    }));
+    if (!data) return mockBio;
+    return {
+      name: data.name || mockBio.name,
+      tagline: data.tagline || mockBio.tagline,
+      photoUrl: data.photoUrl || mockBio.photoUrl,
+      paragraphs: data.paragraphs || mockBio.paragraphs,
+    };
   } catch {
-    return mockFeaturedWork;
+    return mockBio;
   }
-}
-
-export async function getHeroPiece(): Promise<SongData> {
-  const songs = await getSongs();
-  if (songs && songs.length > 0) {
-    return songs[0];
-  }
-  return mockHeroPiece;
-}
-
-export async function getHeroReels(): Promise<SongData[]> {
-  const songs = await getSongs();
-  if (songs && songs.length >= 3) {
-    return songs.slice(0, 3);
-  }
-  return mockHeroReels;
 }
