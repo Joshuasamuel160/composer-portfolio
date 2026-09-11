@@ -45,27 +45,27 @@ export const BrandStrip: React.FC<BrandStripProps> = ({ brands }) => {
   if (!brands || brands.length === 0) return null;
 
   return (
-    <section ref={containerRef} className="py-14 border-y border-white/5 bg-zinc-950/60 backdrop-blur-xs">
+    <section ref={containerRef} className="py-14 border-y border-white/5 bg-zinc-950/80 backdrop-blur-xs">
       <div className="max-w-7xl mx-auto px-6">
         <p className="text-center text-[11px] tracking-[0.3em] text-zinc-500 uppercase mb-10 font-mono">
           CLIENTS & COLLABORATORS
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 md:gap-16">
+        <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-14 md:gap-20">
           {brands.map((brand) => (
             <div
               key={brand.id}
-              className="brand-item group px-3 py-2 flex items-center justify-center h-12 w-28 sm:w-36 md:w-40 transition-transform duration-300 ease-out hover:scale-105"
+              className="brand-item group flex items-center justify-center bg-transparent cursor-pointer transition-transform duration-300 ease-out hover:scale-105"
             >
               {brand.logoUrl ? (
                 <img
                   src={brand.logoUrl}
                   alt={`${brand.name} logo`}
                   loading="lazy"
-                  className="max-h-full max-w-full object-contain filter grayscale opacity-50 transition-all duration-300 ease-out group-hover:grayscale-0 group-hover:opacity-100 group-hover:brightness-110"
+                  className="h-7 sm:h-9 md:h-11 w-auto max-w-[140px] sm:max-w-[200px] object-contain brightness-0 invert opacity-80 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:brightness-100 group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.2)]"
                 />
               ) : (
-                <span className="text-base sm:text-lg font-serif font-light text-zinc-400 group-hover:text-amber-400 transition-colors uppercase tracking-widest text-center truncate">
+                <span className="text-lg md:text-xl font-serif font-light text-zinc-200 group-hover:text-amber-400 transition-colors uppercase tracking-widest text-center truncate">
                   {brand.name}
                 </span>
               )}
