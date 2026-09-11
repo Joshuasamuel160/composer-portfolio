@@ -11,12 +11,12 @@ const client = createClient({
 const bioDoc = {
   _id: "bio-singleton",
   _type: "bio",
-  name: "Julian Vance",
+  name: "Joshua Samuel",
   tagline: "Composer & Music Producer for Film, TV, and Brands",
   paragraphs: [
-    "Julian Vance is a Los Angeles and London-based composer and music producer crafting immersive sonic landscapes for film, narrative series, global commercial campaigns, and record releases.",
-    "Trained in classical composition at the Royal Academy of Music and refined in electronic sound design, Vance bridges orchestral grandeur with raw analog synthesis. His signature aesthetic lives at the intersection of emotional intimacy and visceral weight.",
-    "Over the past decade, Vance has scored feature films premiered at Sundance and Cannes, collaborated with chart-topping alternative recording artists, and forged distinctive sonic identities for international luxury brands."
+    "Joshua Samuel is a Lagos, Nigeria-based composer and music producer crafting immersive sonic landscapes for film, narrative series, global commercial campaigns, and record releases.",
+    "Trained in classical composition and refined in electronic sound design, Samuel bridges orchestral grandeur with raw analog synthesis. His signature aesthetic lives at the intersection of emotional intimacy and visceral weight.",
+    "Over the past decade, Samuel has scored feature films premiered at international festivals, collaborated with chart-topping recording artists, and forged distinctive sonic identities for global brands."
   ]
 };
 

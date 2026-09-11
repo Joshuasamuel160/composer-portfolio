@@ -17,14 +17,37 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://thejoshuasamuel.vercel.app"),
   title: "Joshua Samuel — Composer & Music Producer",
-  description: "Official portfolio of Joshua Samuel, composer & music producer for film, TV, songs, and brand campaigns.",
+  description: "Official portfolio of Joshua Samuel, composer & music producer for film, TV, songs, and brand campaigns. Lagos • Nigeria.",
   icons: {
     icon: [
       { url: "/icon.png?v=3", type: "image/png", sizes: "512x512" },
       { url: "/favicon.ico?v=3", sizes: "any" },
     ],
     apple: "/apple-icon.png?v=3",
+  },
+  openGraph: {
+    title: "Joshua Samuel — Composer & Music Producer",
+    description: "Official portfolio of Joshua Samuel, composer & music producer for film, TV, songs, and brand campaigns.",
+    url: "https://thejoshuasamuel.vercel.app",
+    siteName: "Joshua Samuel Music",
+    images: [
+      {
+        url: "/images/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Joshua Samuel — Composer & Music Producer",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Joshua Samuel — Composer & Music Producer",
+    description: "Official portfolio of Joshua Samuel, composer & music producer for film, TV, songs, and brand campaigns.",
+    images: ["/images/og-image.png"],
   },
 };
 

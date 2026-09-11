@@ -14,6 +14,34 @@ function formatTime(seconds: number): string {
 export const GlobalAudioPlayer: React.FC = () => {
   const { currentTrack, isPlaying, togglePlay, currentTime, duration, seek, volume, setVolume, closePlayer } = useAudio();
 
+  // Keyboard Shortcuts: Spacebar (Play/Pause), Left/Right Arrows (Seek 5s), M (Mute)
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!currentTrack) return;
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+        return;
+      }
+
+      if (e.code === "Space") {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.code === "ArrowLeft") {
+        e.preventDefault();
+        seek(Math.max(0, currentTime - 5));
+      } else if (e.code === "ArrowRight") {
+        e.preventDefault();
+        seek(Math.min(duration || 0, currentTime + 5));
+      } else if (e.code === "KeyM") {
+        e.preventDefault();
+        setVolume(volume === 0 ? 0.85 : 0);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentTrack, isPlaying, currentTime, duration, volume, togglePlay, seek, setVolume]);
+
   if (!currentTrack) return null;
 
   const progressPercent = duration ? (currentTime / duration) * 100 : 0;
@@ -21,17 +49,28 @@ export const GlobalAudioPlayer: React.FC = () => {
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:max-w-4xl z-50 bg-zinc-950/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl transition-all duration-300">
       <div className="flex items-center justify-between gap-4">
-        {/* Track Thumbnail & Meta */}
+        {/* Track Thumbnail & Meta + Soundwave Equalizer */}
         <div className="flex items-center gap-3 min-w-0">
-          {currentTrack.coverUrl && (
-            <img
-              src={currentTrack.coverUrl}
-              alt={currentTrack.title}
-              className="w-12 h-12 rounded-lg object-cover border border-white/10 shadow-md flex-shrink-0"
-            />
-          )}
+          <div className="relative flex-shrink-0">
+            {currentTrack.coverUrl && (
+              <img
+                src={currentTrack.coverUrl}
+                alt={currentTrack.title}
+                className="w-12 h-12 rounded-lg object-cover border border-white/10 shadow-md"
+              />
+            )}
+            {/* Animated DAW Soundwave Equalizer overlay badge */}
+            {isPlaying && (
+              <div className="absolute inset-0 bg-zinc-950/60 rounded-lg flex items-center justify-center gap-0.5 p-1 backdrop-blur-[1px]">
+                <span className="w-1 bg-amber-400 rounded-full animate-[bounce_0.6s_infinite_100ms] h-4" />
+                <span className="w-1 bg-amber-400 rounded-full animate-[bounce_0.6s_infinite_300ms] h-6" />
+                <span className="w-1 bg-amber-400 rounded-full animate-[bounce_0.6s_infinite_200ms] h-3" />
+                <span className="w-1 bg-amber-400 rounded-full animate-[bounce_0.6s_infinite_400ms] h-5" />
+              </div>
+            )}
+          </div>
           <div className="min-w-0">
-            <h4 className="text-sm font-medium text-zinc-100 truncate tracking-wide">
+            <h4 className="text-sm font-medium text-zinc-100 truncate tracking-wide flex items-center gap-2">
               {currentTrack.title}
             </h4>
             <p className="text-xs text-zinc-400 truncate">
@@ -40,7 +79,7 @@ export const GlobalAudioPlayer: React.FC = () => {
           </div>
         </div>
 
-        {/* Play / Pause & Controls */}
+        {/* Play / Pause & Scrubber Controls */}
         <div className="flex items-center gap-4 flex-grow max-w-md px-2">
           <button
             onClick={togglePlay}
@@ -50,13 +89,13 @@ export const GlobalAudioPlayer: React.FC = () => {
             {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
           </button>
 
-          {/* Scrubber Bar */}
+          {/* DAW Scrubber Bar */}
           <div className="flex-grow flex items-center gap-2">
-            <span className="text-[11px] text-zinc-400 font-mono w-8 text-right">
+            <span className="text-[11px] text-zinc-400 font-mono w-9 text-right">
               {formatTime(currentTime)}
             </span>
             <div
-              className="relative flex-grow h-1.5 bg-zinc-800 rounded-full cursor-pointer group"
+              className="relative flex-grow h-2 bg-zinc-800 rounded-full cursor-pointer group overflow-hidden"
               onClick={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const clickPos = (e.clientX - rect.left) / rect.width;
@@ -64,11 +103,11 @@ export const GlobalAudioPlayer: React.FC = () => {
               }}
             >
               <div
-                className="absolute left-0 top-0 bottom-0 bg-amber-500 rounded-full transition-all group-hover:bg-amber-400"
+                className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all group-hover:brightness-110"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <span className="text-[11px] text-zinc-400 font-mono w-8">
+            <span className="text-[11px] text-zinc-400 font-mono w-9">
               {formatTime(duration)}
             </span>
           </div>
