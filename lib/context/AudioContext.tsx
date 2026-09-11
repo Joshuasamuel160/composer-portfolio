@@ -40,6 +40,15 @@ function extractYouTubeId(url: string | undefined): string | null {
   return match ? match[1] : null;
 }
 
+function isExternalStreamingPage(url: string | undefined): boolean {
+  if (!url) return false;
+  return (
+    url.includes("spotify.com") ||
+    url.includes("music.apple.com") ||
+    url.includes("soundcloud.com")
+  );
+}
+
 function normalizeTrack(track: Track | SongData): Track {
   if ("artist" in track) {
     return track;
@@ -149,6 +158,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const playTrack = (inputTrack: Track | SongData, queueList?: (Track | SongData)[]) => {
     const track = normalizeTrack(inputTrack);
     if (!track.audioUrl) return;
+
+    if (isExternalStreamingPage(track.audioUrl)) {
+      if (typeof window !== "undefined") {
+        window.open(track.audioUrl, "_blank");
+      }
+      return;
+    }
 
     const newYtId = extractYouTubeId(track.audioUrl);
 
@@ -285,11 +301,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }}
     >
       {children}
-      {/* HTML5 Native Audio Player for MP3 files */}
+      {/* HTML5 Native Audio Player for MP3 / uploaded files */}
       <audio
         ref={audioRef}
         preload="auto"
-        crossOrigin="anonymous"
         onTimeUpdate={() => {
           if (!ytId && audioRef.current) setCurrentTime(audioRef.current.currentTime);
         }}
