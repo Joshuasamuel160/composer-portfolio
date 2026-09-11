@@ -45,13 +45,13 @@ export const BrandStrip: React.FC<BrandStripProps> = ({ brands }) => {
   if (!brands || brands.length === 0) return null;
 
   return (
-    <section ref={containerRef} className="py-16 border-y border-white/5 bg-zinc-950/80 backdrop-blur-xs">
-      <div className="max-w-7xl mx-auto px-6">
-        <p className="text-center text-[11px] tracking-[0.3em] text-zinc-500 uppercase mb-12 font-mono">
+    <section ref={containerRef} className="py-20 md:py-28 border-y border-white/5 bg-zinc-950/80 backdrop-blur-xs">
+      <div className="max-w-[1400px] mx-auto px-6">
+        <p className="text-center text-[11px] tracking-[0.35em] text-zinc-500 uppercase mb-16 font-mono">
           CLIENTS & COLLABORATORS
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-16 md:gap-24">
+        <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-16 md:gap-24 lg:gap-28">
           {brands.map((brand) => (
             <div
               key={brand.id}
@@ -65,10 +65,10 @@ export const BrandStrip: React.FC<BrandStripProps> = ({ brands }) => {
                   style={{
                     filter: "brightness(0) saturate(100%) invert(82%)",
                   }}
-                  className="h-9 sm:h-12 md:h-14 lg:h-16 w-auto max-w-[160px] sm:max-w-[220px] md:max-w-[260px] object-contain opacity-85 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:brightness-100 group-hover:invert-95"
+                  className="h-[56px] sm:h-[68px] md:h-[84px] lg:h-[104px] w-auto max-w-[280px] sm:max-w-[420px] md:max-w-[560px] lg:max-w-[650px] object-contain opacity-85 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:brightness-100 group-hover:invert-95"
                 />
               ) : (
-                <span className="text-xl sm:text-2xl font-serif font-light text-[#C8C8C8] group-hover:text-[#E5E5E5] transition-colors uppercase tracking-widest text-center truncate">
+                <span className="text-2xl sm:text-3xl font-serif font-light text-[#C8C8C8] group-hover:text-[#E5E5E5] transition-colors uppercase tracking-widest text-center truncate">
                   {brand.name}
                 </span>
               )}
