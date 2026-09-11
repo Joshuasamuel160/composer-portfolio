@@ -47,10 +47,6 @@ export default async function AboutPage() {
             </p>
           ))}
 
-          <div className="pt-8 border-t border-white/5 text-xs font-mono tracking-widest text-zinc-500 uppercase space-y-1">
-            <p>REPRESENTATION: UNITED TALENT AGENCY (UTA)</p>
-            <p>PUBLISHING: UNIVERSAL MUSIC PUBLISHING GROUP</p>
-          </div>
         </ScrollAnimation>
       </div>
     </div>
