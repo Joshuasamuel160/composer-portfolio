@@ -84,6 +84,19 @@ export interface BioData {
   paragraphs: string[];
 }
 
+export interface SocialLink {
+  platform: string;
+  url: string;
+  handle: string;
+}
+
+export interface ContactInfoData {
+  email: string;
+  locations?: string;
+  representation?: string;
+  socials?: SocialLink[];
+}
+
 export interface FeaturedWorkItem {
   id: string;
   title: string;
@@ -103,6 +116,17 @@ export const mockBio: BioData = {
     "Trained in classical composition and refined in electronic sound design, Samuel bridges orchestral grandeur with raw analog synthesis. His signature aesthetic lives at the intersection of emotional intimacy and visceral weight.",
     "Over the past decade, Samuel has scored feature films, collaborated with recording artists, and forged distinctive sonic identities for international brands."
   ]
+};
+
+export const mockContactInfo: ContactInfoData = {
+  email: "contact@joshuasamuel.com",
+  locations: "LOS ANGELES • LONDON",
+  representation: "For scoring inquiries, record production, and commercial licensing.",
+  socials: [
+    { platform: "Instagram", url: "https://instagram.com", handle: "@joshuasamuelmusic" },
+    { platform: "YouTube", url: "https://youtube.com", handle: "Joshua Samuel Music" },
+    { platform: "IMDb", url: "https://imdb.com", handle: "Joshua Samuel (Composer)" },
+  ],
 };
 
 export const mockBrands: BrandData[] = [

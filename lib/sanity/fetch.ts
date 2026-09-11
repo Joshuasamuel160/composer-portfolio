@@ -7,12 +7,14 @@ import {
   BrandData,
   ArtistData,
   BioData,
+  ContactInfoData,
   mockScreenProjects,
   mockSongs,
   mockAds,
   mockBrands,
   mockArtists,
   mockBio,
+  mockContactInfo,
 } from "../mockData";
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "50173b3c";
@@ -314,6 +316,67 @@ export async function getSongs(): Promise<SongData[]> {
 
 export async function getHeroReels(): Promise<SongData[]> {
   try {
+    // 1. Check if specific featured songs/albums were selected in Sanity Studio
+    const contactDoc = await client.fetch(
+      `*[_type == "contactInfo"][0] {
+        featuredSongs[]-> {
+          _id,
+          _type,
+          title,
+          role,
+          audioUrl,
+          "audioFileUrl": audioFile.asset->url,
+          embedUrl,
+          releaseYear,
+          "artistNameRef": artist->name,
+          artistName,
+          "coverUrl": coverImage.asset->url,
+          tracks[] {
+            _key,
+            title,
+            role,
+            audioUrl,
+            "audioFileUrl": audioFile.asset->url
+          }
+        }
+      }`,
+      {},
+      { next: { revalidate: 0 } }
+    );
+
+    if (contactDoc?.featuredSongs && contactDoc.featuredSongs.length > 0) {
+      const selectedSongs: SongData[] = [];
+      contactDoc.featuredSongs.forEach((item: any, idx: number) => {
+        if (item._type === "song") {
+          selectedSongs.push({
+            id: item._id || `feat-song-${idx}`,
+            title: item.title,
+            artistId: item.artistId || `art-${idx}`,
+            artistName: item.artistNameRef || "Joshua Samuel",
+            role: item.role || "Composer / Producer",
+            coverUrl: item.coverUrl || "",
+            audioUrl: item.audioFileUrl || item.audioUrl || "",
+            embedUrl: item.embedUrl,
+            releaseYear: item.releaseYear || "2024",
+          });
+        } else if (item._type === "album" && item.tracks && item.tracks.length > 0) {
+          const firstTrack = item.tracks[0];
+          selectedSongs.push({
+            id: `feat-alb-${item._id}`,
+            title: firstTrack.title || item.title,
+            artistId: item._id,
+            artistName: item.artistNameRef || item.artistName || "Joshua Samuel",
+            role: firstTrack.role || "Composer / Producer",
+            coverUrl: item.coverUrl || "",
+            audioUrl: firstTrack.audioFileUrl || firstTrack.audioUrl || "",
+            releaseYear: item.releaseYear || "2024",
+          });
+        }
+      });
+      if (selectedSongs.length > 0) return selectedSongs;
+    }
+
+    // Fallback: return top songs from getSongs
     const songs = await getSongs();
     if (songs && songs.length > 0) {
       return songs.slice(0, 4);
@@ -348,6 +411,34 @@ export async function getAds(): Promise<AdCampaignData[]> {
     }));
   } catch {
     return mockAds;
+  }
+}
+
+export async function getContactInfo(): Promise<ContactInfoData> {
+  try {
+    const data = await client.fetch(
+      `*[_type == "contactInfo"][0] {
+        email,
+        locations,
+        representation,
+        socials[] {
+          platform,
+          url,
+          handle
+        }
+      }`,
+      {},
+      { next: { revalidate: 0 } }
+    );
+    if (!data) return mockContactInfo;
+    return {
+      email: data.email || mockContactInfo.email,
+      locations: data.locations || mockContactInfo.locations,
+      representation: data.representation || mockContactInfo.representation,
+      socials: data.socials && data.socials.length > 0 ? data.socials : mockContactInfo.socials,
+    };
+  } catch {
+    return mockContactInfo;
   }
 }
 
