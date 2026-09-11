@@ -45,15 +45,15 @@ export const contactInfo = defineType({
     }),
     defineField({
       name: "featuredSongs",
-      title: "Featured Songs for Home Page Hero Showreel",
+      title: "Featured Songs & Movies for Home Page Hero Showreel",
       type: "array",
       of: [
         {
           type: "reference",
-          to: [{ type: "song" }, { type: "album" }],
+          to: [{ type: "song" }, { type: "album" }, { type: "screenProject" }],
         },
       ],
-      description: "Select which songs or albums to feature in the Home Page Hero player",
+      description: "Select which songs, albums, or movies to feature in the Home Page Hero player",
     }),
   ],
 });

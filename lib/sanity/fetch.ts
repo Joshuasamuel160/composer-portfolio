@@ -323,7 +323,10 @@ export async function getHeroReels(): Promise<SongData[]> {
           _id,
           _type,
           title,
+          year,
           role,
+          director,
+          productionCompany,
           audioUrl,
           "audioFileUrl": audioFile.asset->url,
           embedUrl,
@@ -331,6 +334,14 @@ export async function getHeroReels(): Promise<SongData[]> {
           "artistNameRef": artist->name,
           artistName,
           "coverUrl": coverImage.asset->url,
+          "posterUrl": poster.asset->url,
+          scoreCues[] {
+            _key,
+            title,
+            duration,
+            audioUrl,
+            "audioFileUrl": audioFile.asset->url
+          },
           tracks[] {
             _key,
             title,
@@ -370,6 +381,18 @@ export async function getHeroReels(): Promise<SongData[]> {
             coverUrl: item.coverUrl || "",
             audioUrl: firstTrack.audioFileUrl || firstTrack.audioUrl || "",
             releaseYear: item.releaseYear || "2024",
+          });
+        } else if (item._type === "screenProject") {
+          const firstCue = item.scoreCues && item.scoreCues.length > 0 ? item.scoreCues[0] : null;
+          selectedSongs.push({
+            id: `feat-sp-${item._id}`,
+            title: firstCue ? firstCue.title : `${item.title} (Main Score Theme)`,
+            artistId: `sp-${item._id}`,
+            artistName: item.productionCompany || item.title || "Joshua Samuel",
+            role: `${item.role || "Composer"} (${item.year || "2024"})`,
+            coverUrl: item.posterUrl || "",
+            audioUrl: firstCue ? (firstCue.audioFileUrl || firstCue.audioUrl || "") : "",
+            releaseYear: item.year || "2024",
           });
         }
       });
