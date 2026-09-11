@@ -120,7 +120,7 @@ export const mockBio: BioData = {
 
 export const mockContactInfo: ContactInfoData = {
   email: "contact@joshuasamuel.com",
-  locations: "LOS ANGELES • LONDON",
+  locations: "LAGOS • NIGERIA",
   representation: "For scoring inquiries, record production, and commercial licensing.",
   socials: [
     { platform: "Instagram", url: "https://instagram.com", handle: "@joshuasamuelmusic" },

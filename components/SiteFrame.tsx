@@ -28,7 +28,7 @@ export const SiteFrame: React.FC<{ children: React.ReactNode }> = ({ children })
       <footer className="py-12 border-t border-white/5 text-center text-xs tracking-widest text-zinc-500 uppercase font-mono">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <span>© {new Date().getFullYear()} JOSHUA SAMUEL. ALL RIGHTS RESERVED.</span>
-          <span>LOS ANGELES • LONDON</span>
+          <span>LAGOS • NIGERIA</span>
         </div>
       </footer>
       <GlobalAudioPlayer />

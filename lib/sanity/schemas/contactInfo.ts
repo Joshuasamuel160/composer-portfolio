@@ -16,8 +16,8 @@ export const contactInfo = defineType({
       name: "locations",
       title: "Locations / Cities (Shown in Footer)",
       type: "string",
-      description: "e.g. LOS ANGELES • LONDON",
-      initialValue: "LOS ANGELES • LONDON",
+      description: "e.g. LAGOS • NIGERIA",
+      initialValue: "LAGOS • NIGERIA",
     }),
     defineField({
       name: "representation",
