@@ -20,7 +20,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  logoUrl,
+  logoUrl = "/images/logo.png",
   siteTitle = "JOSHUA SAMUEL",
 }) => {
   const pathname = usePathname();
@@ -29,19 +29,18 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="fixed top-0 left-0 right-0 z-50 nav-backdrop border-b border-white/5 transition-all">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        {/* Brand / Logo (Image or Text) */}
-        <Link href="/" className="flex items-center gap-3 group">
-          {logoUrl ? (
+        {/* Brand / Logo (Image Emblem + Text) */}
+        <Link href="/" className="flex items-center gap-3.5 group">
+          {logoUrl && (
             <img
               src={logoUrl}
-              alt={siteTitle}
-              className="h-8 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              alt={`${siteTitle} logo`}
+              className="h-9 w-9 sm:h-10 sm:w-10 rounded-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
-          ) : (
-            <span className="text-lg tracking-[0.2em] font-light uppercase text-zinc-100 group-hover:text-amber-500 transition-colors">
-              {siteTitle}
-            </span>
           )}
+          <span className="text-base sm:text-lg tracking-[0.2em] font-light uppercase text-zinc-100 group-hover:text-amber-500 transition-colors">
+            {siteTitle}
+          </span>
         </Link>
 
         {/* Desktop Navigation Links */}
