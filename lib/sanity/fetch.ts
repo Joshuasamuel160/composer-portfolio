@@ -203,7 +203,44 @@ export async function getAlbums(): Promise<AlbumData[]> {
       }
     });
 
-    const combined = [...movieSoundtracks, ...sanityAlbums];
+    // 3. Fetch standalone Song documents and convert into Single Album cards
+    const songData = await client.fetch(
+      `*[_type == "song"] | order(order asc) {
+        _id,
+        title,
+        role,
+        audioUrl,
+        "audioFileUrl": audioFile.asset->url,
+        embedUrl,
+        releaseYear,
+        "artistId": artist._ref,
+        "artistName": artist->name,
+        "coverUrl": coverImage.asset->url
+      }`,
+      {},
+      { next: { revalidate: 0 } }
+    );
+
+    const standaloneSongAlbums: AlbumData[] = (songData || []).map((s: any, idx: number) => ({
+      id: `alb-song-${s._id || idx}`,
+      title: s.title,
+      artistId: s.artistId || `art-s-${idx}`,
+      artistName: s.artistName || "Julian Vance",
+      coverUrl: s.coverUrl || "",
+      releaseYear: s.releaseYear || "2024",
+      category: "Single",
+      tracks: [
+        {
+          id: s._id || `track-s-${idx}`,
+          title: s.title,
+          role: s.role || "Producer",
+          audioUrl: s.audioFileUrl || s.audioUrl || "",
+          externalUrl: s.embedUrl,
+        },
+      ],
+    }));
+
+    const combined = [...movieSoundtracks, ...sanityAlbums, ...standaloneSongAlbums];
     return combined;
   } catch (err) {
     console.error("Error fetching albums:", err);
