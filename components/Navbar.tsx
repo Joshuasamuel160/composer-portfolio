@@ -21,7 +21,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   logoUrl,
-  siteTitle = "JULIAN VANCE",
+  siteTitle = "JOSHUA SAMUEL",
 }) => {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

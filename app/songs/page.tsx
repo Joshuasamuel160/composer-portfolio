@@ -4,7 +4,7 @@ import { SongsClient } from "./SongsClient";
 import { ScrollAnimation } from "@/components/ScrollAnimation";
 
 export const metadata: Metadata = {
-  title: "Albums & Soundtracks | Julian Vance",
+  title: "Albums & Soundtracks | Joshua Samuel",
   description:
     "Explore curated film soundtracks, album productions, and discography releases grouped by production company and artist.",
 };

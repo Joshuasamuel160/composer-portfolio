@@ -17,8 +17,8 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Julian Vance — Composer & Music Producer",
-  description: "Official portfolio of Julian Vance, composer & music producer for film, TV, songs, and brand campaigns.",
+  title: "Joshua Samuel — Composer & Music Producer",
+  description: "Official portfolio of Joshua Samuel, composer & music producer for film, TV, songs, and brand campaigns.",
 };
 
 export default function RootLayout({

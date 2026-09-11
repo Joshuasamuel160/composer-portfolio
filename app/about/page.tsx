@@ -3,9 +3,9 @@ import { getBio } from "@/lib/sanity/fetch";
 import { ScrollAnimation } from "@/components/ScrollAnimation";
 
 export const metadata: Metadata = {
-  title: "Biography & About | Julian Vance",
+  title: "Biography & About | Joshua Samuel",
   description:
-    "Read the background, classical training, and scoring philosophy of composer and music producer Julian Vance.",
+    "Read the background, classical training, and scoring philosophy of composer and music producer Joshua Samuel.",
 };
 
 export default async function AboutPage() {

@@ -4,7 +4,7 @@ import { AdsGrid } from "@/components/AdsGrid";
 import { ScrollAnimation } from "@/components/ScrollAnimation";
 
 export const metadata: Metadata = {
-  title: "Ads & Commercial Sound Design | Julian Vance",
+  title: "Ads & Commercial Sound Design | Joshua Samuel",
   description:
     "Bespoke original compositions, sonic branding, and audio post-production for luxury and global commercial campaigns.",
 };

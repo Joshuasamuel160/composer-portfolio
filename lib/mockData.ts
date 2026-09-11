@@ -95,13 +95,13 @@ export interface FeaturedWorkItem {
 }
 
 export const mockBio: BioData = {
-  name: "Julian Vance",
+  name: "Joshua Samuel",
   tagline: "Composer & Music Producer for Film, TV, and Brands",
   photoUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80",
   paragraphs: [
-    "Julian Vance is a Los Angeles and London-based composer and music producer crafting immersive sonic landscapes for film, narrative series, global commercial campaigns, and record releases.",
-    "Trained in classical composition at the Royal Academy of Music and refined in electronic sound design, Vance bridges orchestral grandeur with raw analog synthesis. His signature aesthetic lives at the intersection of emotional intimacy and visceral weight.",
-    "Over the past decade, Vance has scored feature films premiered at Sundance and Cannes, collaborated with chart-topping alternative recording artists, and forged distinctive sonic identities for international luxury brands."
+    "Joshua Samuel is a composer and music producer crafting immersive sonic landscapes for film, narrative series, global commercial campaigns, and record releases.",
+    "Trained in classical composition and refined in electronic sound design, Samuel bridges orchestral grandeur with raw analog synthesis. His signature aesthetic lives at the intersection of emotional intimacy and visceral weight.",
+    "Over the past decade, Samuel has scored feature films, collaborated with recording artists, and forged distinctive sonic identities for international brands."
   ]
 };
 

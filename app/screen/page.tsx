@@ -4,9 +4,9 @@ import { ScreenGrid } from "@/components/ScreenGrid";
 import { ScrollAnimation } from "@/components/ScrollAnimation";
 
 export const metadata: Metadata = {
-  title: "Screen Work — Film & TV Scores | Julian Vance",
+  title: "Screen Work — Film & TV Scores | Joshua Samuel",
   description:
-    "Explore feature film scores, television miniseries soundtracks, and narrative short film compositions by Julian Vance.",
+    "Explore feature film scores, television miniseries soundtracks, and narrative short film compositions by Joshua Samuel.",
 };
 
 export default async function ScreenPage() {
