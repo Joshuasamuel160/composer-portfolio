@@ -49,12 +49,17 @@ export const ArtistStrip: React.FC<ArtistStripProps> = ({
   );
 
   return (
-    <div ref={containerRef} className="py-4 mb-8 border-b border-white/5">
-      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+    <div ref={containerRef} className="py-2 mb-6 border-b border-white/5 relative">
+      <p className="text-[10px] font-mono tracking-[0.25em] text-zinc-500 uppercase mb-3">
+        FILTER BY ARTIST
+      </p>
+
+      {/* Horizontal Touch Reel Container */}
+      <div className="flex items-center gap-3 overflow-x-auto scrollbar-none py-1 snap-x flex-nowrap sm:flex-wrap -mx-6 px-6 sm:mx-0 sm:px-0">
         {/* All Artists Reset Button */}
         <button
           onClick={() => onSelectArtist(null)}
-          className={`artist-badge px-5 py-2.5 rounded-full text-xs tracking-widest uppercase font-medium transition-all duration-300 ${
+          className={`artist-badge flex-shrink-0 snap-start px-5 py-2.5 rounded-full text-xs tracking-widest uppercase font-medium transition-all duration-300 ${
             selectedArtistId === null
               ? "bg-amber-500 text-zinc-950 shadow-lg shadow-amber-500/20 scale-105"
               : "bg-zinc-900/80 text-zinc-400 hover:text-white border border-white/5 hover:border-white/20"
@@ -70,10 +75,10 @@ export const ArtistStrip: React.FC<ArtistStripProps> = ({
             <button
               key={artist.id}
               onClick={() => onSelectArtist(artist.id)}
-              className={`artist-badge flex items-center gap-3 px-4 py-2 rounded-full border transition-all duration-300 ${
+              className={`artist-badge flex-shrink-0 snap-start flex items-center gap-3 px-4 py-2 rounded-full border transition-all duration-300 ${
                 isSelected
                   ? "bg-amber-500/10 border-amber-500 text-amber-400 scale-105 shadow-md shadow-amber-500/10"
-                  : "grayscale-strip-item bg-zinc-900/60 border-white/5 text-zinc-300"
+                  : "grayscale-strip-item bg-zinc-900/60 border-white/5 text-zinc-300 hover:border-white/20"
               }`}
             >
               {artist.photoUrl && (
@@ -83,7 +88,7 @@ export const ArtistStrip: React.FC<ArtistStripProps> = ({
                   className="w-7 h-7 rounded-full object-cover border border-white/10"
                 />
               )}
-              <span className="text-xs tracking-wider uppercase font-medium">
+              <span className="text-xs tracking-wider uppercase font-medium whitespace-nowrap">
                 {artist.name}
               </span>
             </button>
