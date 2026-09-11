@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { AlbumData, SongData, ArtistData } from "@/lib/mockData";
 import { ArtistStrip } from "@/components/ArtistStrip";
 import { useAudio } from "@/lib/context/AudioContext";
-import { Play, Pause, Disc, ChevronDown, ChevronUp } from "lucide-react";
+import { Play, Pause, Disc, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 
 interface SongsClientProps {
   albums: AlbumData[];
@@ -137,6 +137,32 @@ export const SongsClient: React.FC<SongsClientProps> = ({ albums, songs, artists
 
                   {/* Right Track Count & Expand Button */}
                   <div className="flex items-center gap-4 sm:flex-shrink-0 self-end sm:self-center">
+                    {/* Optional Album External Links (Spotify / Apple Music) */}
+                    {(album.spotifyUrl || album.appleMusicUrl) && (
+                      <div className="flex items-center gap-2 mr-2" onClick={(e) => e.stopPropagation()}>
+                        {album.spotifyUrl && (
+                          <a
+                            href={album.spotifyUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono tracking-widest uppercase flex items-center gap-1.5 transition-colors"
+                          >
+                            <ExternalLink size={12} /> SPOTIFY
+                          </a>
+                        )}
+                        {album.appleMusicUrl && (
+                          <a
+                            href={album.appleMusicUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 rounded-full bg-pink-500/10 hover:bg-pink-500/20 text-pink-400 border border-pink-500/30 text-[10px] font-mono tracking-widest uppercase flex items-center gap-1.5 transition-colors"
+                          >
+                            <ExternalLink size={12} /> APPLE MUSIC
+                          </a>
+                        )}
+                      </div>
+                    )}
+
                     <span className="text-xs font-mono text-zinc-400">
                       {album.tracks.length} {album.tracks.length === 1 ? "TRACK" : "TRACKS"}
                     </span>
@@ -159,38 +185,47 @@ export const SongsClient: React.FC<SongsClientProps> = ({ albums, songs, artists
                   <div className="px-6 sm:px-8 pb-8 pt-2 border-t border-white/5 space-y-3 bg-zinc-900/30">
                     <div className="flex items-center justify-between py-2 text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
                       <span>TRACK TITLE</span>
-                      <span>ROLE & DURATION</span>
+                      <span>ROLE & STREAMING</span>
                     </div>
 
                     <div className="space-y-2">
                       {album.tracks.map((track) => {
                         const trackGlobalId = track.id.startsWith("cue-") || track.id.includes("-") ? track.id : `alb-${album.id}-${track.id}`;
                         const isCurrentPlaying = currentTrack?.id === trackGlobalId && isPlaying;
+                        const hasInlineAudio = Boolean(track.audioUrl);
+                        const hasExternalLink = Boolean(track.externalUrl);
 
                         return (
                           <div
                             key={track.id}
-                            onClick={() =>
-                              playTrack({
-                                id: trackGlobalId,
-                                title: track.title,
-                                artist: album.artistName,
-                                role: track.role,
-                                coverUrl: album.coverUrl,
-                                audioUrl: track.audioUrl,
-                                year: album.releaseYear,
-                              })
-                            }
-                            className={`flex items-center justify-between p-3.5 rounded-2xl border text-xs sm:text-sm cursor-pointer transition-all duration-200 ${
+                            className={`flex items-center justify-between p-3.5 rounded-2xl border text-xs sm:text-sm transition-all duration-200 ${
                               isCurrentPlaying
                                 ? "bg-amber-500/15 border-amber-500/50 text-amber-300 shadow-md shadow-amber-500/10"
                                 : "bg-zinc-900/90 border-white/5 text-zinc-300 hover:bg-zinc-900 hover:border-white/20"
                             }`}
                           >
-                            <div className="flex items-center gap-3.5 min-w-0">
+                            {/* Track Left: Play Button & Title */}
+                            <div
+                              onClick={() => {
+                                if (hasInlineAudio) {
+                                  playTrack({
+                                    id: trackGlobalId,
+                                    title: track.title,
+                                    artist: album.artistName,
+                                    role: track.role,
+                                    coverUrl: album.coverUrl,
+                                    audioUrl: track.audioUrl,
+                                    year: album.releaseYear,
+                                  });
+                                } else if (hasExternalLink && typeof window !== "undefined") {
+                                  window.open(track.externalUrl, "_blank");
+                                }
+                              }}
+                              className="flex items-center gap-3.5 min-w-0 flex-1 cursor-pointer"
+                            >
                               <div
                                 className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
-                                  isCurrentPlaying ? "bg-amber-500 text-zinc-950" : "bg-zinc-800 text-zinc-300"
+                                  isCurrentPlaying ? "bg-amber-500 text-zinc-950" : "bg-zinc-800 text-zinc-300 group-hover:bg-amber-500 group-hover:text-zinc-950"
                                 }`}
                               >
                                 {isCurrentPlaying ? (
@@ -206,14 +241,29 @@ export const SongsClient: React.FC<SongsClientProps> = ({ albums, songs, artists
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-4 flex-shrink-0 ml-3">
+                            {/* Track Right: Role, Duration & External Stream Button */}
+                            <div className="flex items-center gap-3 flex-shrink-0 ml-3">
                               <span className="text-xs font-mono text-zinc-400 hidden sm:inline-block">
                                 {track.role}
                               </span>
+
                               {track.duration && (
-                                <span className="font-mono text-xs text-zinc-500">
+                                <span className="font-mono text-xs text-zinc-500 hidden sm:inline-block">
                                   {track.duration}
                                 </span>
+                              )}
+
+                              {/* External Stream Button */}
+                              {hasExternalLink && (
+                                <a
+                                  href={track.externalUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-mono tracking-widest uppercase flex items-center gap-1.5 transition-colors"
+                                >
+                                  <ExternalLink size={12} /> LISTEN
+                                </a>
                               )}
                             </div>
                           </div>

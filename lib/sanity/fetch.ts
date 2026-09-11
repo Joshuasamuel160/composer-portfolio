@@ -144,12 +144,15 @@ export async function getAlbums(): Promise<AlbumData[]> {
         "coverUrl": coverImage.asset->url,
         releaseYear,
         category,
+        spotifyUrl,
+        appleMusicUrl,
         tracks[] {
           _key,
           title,
           role,
           audioUrl,
-          "audioFileUrl": audioFile.asset->url
+          "audioFileUrl": audioFile.asset->url,
+          externalUrl
         }
       }`,
       {},
@@ -164,11 +167,14 @@ export async function getAlbums(): Promise<AlbumData[]> {
       coverUrl: alb.coverUrl || "",
       releaseYear: alb.releaseYear || "2024",
       category: alb.category || "Album",
+      spotifyUrl: alb.spotifyUrl,
+      appleMusicUrl: alb.appleMusicUrl,
       tracks: (alb.tracks || []).map((t: any, tIdx: number) => ({
         id: t._key || `t-${idx}-${tIdx}`,
         title: t.title,
         role: t.role || "Composer / Producer",
         audioUrl: t.audioFileUrl || t.audioUrl || "",
+        externalUrl: t.externalUrl,
       })),
     }));
 

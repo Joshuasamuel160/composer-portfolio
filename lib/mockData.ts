@@ -30,6 +30,7 @@ export interface AlbumTrack {
   title: string;
   role: string;
   audioUrl: string;
+  externalUrl?: string;
   duration?: string;
 }
 
@@ -41,6 +42,8 @@ export interface AlbumData {
   coverUrl: string;
   releaseYear: string;
   category: string;
+  spotifyUrl?: string;
+  appleMusicUrl?: string;
   tracks: AlbumTrack[];
 }
 

@@ -50,6 +50,18 @@ export const album = defineType({
       initialValue: "Album",
     }),
     defineField({
+      name: "spotifyUrl",
+      title: "Spotify Album / Stream Link",
+      type: "url",
+      description: "Link to full album on Spotify",
+    }),
+    defineField({
+      name: "appleMusicUrl",
+      title: "Apple Music Album / Stream Link",
+      type: "url",
+      description: "Link to full album on Apple Music",
+    }),
+    defineField({
       name: "tracks",
       title: "Tracklist",
       type: "array",
@@ -62,7 +74,8 @@ export const album = defineType({
             { name: "title", title: "Track Title", type: "string" },
             { name: "role", title: "Your Role (e.g. Composer, Producer)", type: "string" },
             { name: "audioFile", title: "Upload MP3 Audio File", type: "file" },
-            { name: "audioUrl", title: "Or Paste Audio Stream URL", type: "url" },
+            { name: "audioUrl", title: "Or Paste Online Audio Stream / YouTube URL", type: "url", description: "Direct MP3 link, YouTube link, or audio stream" },
+            { name: "externalUrl", title: "Spotify / Apple Music / SoundCloud External Link", type: "url", description: "Paste link to open track directly on Spotify, Apple Music, or SoundCloud" },
           ],
         },
       ],
