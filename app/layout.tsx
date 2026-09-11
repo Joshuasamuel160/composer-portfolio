@@ -22,10 +22,10 @@ export const metadata: Metadata = {
   description: "Official portfolio of Joshua Samuel, composer & music producer for film, TV, songs, and brand campaigns. Lagos • Nigeria.",
   icons: {
     icon: [
-      { url: "/icon.png?v=6", type: "image/png", sizes: "512x512" },
-      { url: "/favicon.ico?v=6", sizes: "any" },
+      { url: "/icon.png?v=7", type: "image/png", sizes: "512x512" },
+      { url: "/favicon.ico?v=7", sizes: "any" },
     ],
-    apple: "/apple-icon.png?v=6",
+    apple: "/apple-icon.png?v=7",
   },
   openGraph: {
     title: "Joshua Samuel — Composer & Music Producer",
@@ -61,11 +61,7 @@ export default function RootLayout({
       lang="en"
       className={`${cormorant.variable} ${jakarta.variable} dark h-full antialiased`}
     >
-      <head>
-        <link rel="icon" href="/icon.png?v=6" type="image/png" sizes="512x512" />
-        <link rel="shortcut icon" href="/favicon.ico?v=6" />
-        <link rel="apple-touch-icon" href="/apple-icon.png?v=6" />
-      </head>
+
       <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100 selection:bg-amber-500 selection:text-black">
         <AudioProvider>
           <SiteFrame>{children}</SiteFrame>
