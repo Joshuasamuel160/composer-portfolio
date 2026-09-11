@@ -208,15 +208,28 @@ export const SongsClient: React.FC<SongsClientProps> = ({ albums, songs, artists
                             <div
                               onClick={() => {
                                 if (hasInlineAudio) {
-                                  playTrack({
-                                    id: trackGlobalId,
-                                    title: track.title,
+                                  const albumQueue = album.tracks.map((t) => ({
+                                    id: t.id.startsWith("cue-") || t.id.includes("-") ? t.id : `alb-${album.id}-${t.id}`,
+                                    title: t.title,
                                     artist: album.artistName,
-                                    role: track.role,
+                                    role: t.role,
                                     coverUrl: album.coverUrl,
-                                    audioUrl: track.audioUrl,
+                                    audioUrl: t.audioUrl,
                                     year: album.releaseYear,
-                                  });
+                                  }));
+
+                                  playTrack(
+                                    {
+                                      id: trackGlobalId,
+                                      title: track.title,
+                                      artist: album.artistName,
+                                      role: track.role,
+                                      coverUrl: album.coverUrl,
+                                      audioUrl: track.audioUrl,
+                                      year: album.releaseYear,
+                                    },
+                                    albumQueue
+                                  );
                                 } else if (hasExternalLink && typeof window !== "undefined") {
                                   window.open(track.externalUrl, "_blank");
                                 }

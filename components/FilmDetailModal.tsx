@@ -100,8 +100,18 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
       setIsVideoPlaying(false);
     }
 
+    const cueQueue = (project.scoreCues || []).map((c) => ({
+      id: `${project.id}-${c.id}`,
+      title: c.title,
+      artist: project.title,
+      role: `${project.role} (${project.year})`,
+      coverUrl: project.posterUrl,
+      audioUrl: c.audioUrl,
+      year: project.year,
+    }));
+
     const cueTrackId = `${project.id}-${cue.id}`;
-    playTrack({
+    const targetTrack = cueQueue.find((t) => t.id === cueTrackId) || {
       id: cueTrackId,
       title: cue.title,
       artist: project.title,
@@ -109,7 +119,9 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
       coverUrl: project.posterUrl,
       audioUrl: cue.audioUrl,
       year: project.year,
-    });
+    };
+
+    playTrack(targetTrack, cueQueue);
   };
 
   if (!project) return null;

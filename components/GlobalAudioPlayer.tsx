@@ -1,8 +1,6 @@
-"use client";
-
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { useAudio } from "@/lib/context/AudioContext";
-import { Play, Pause, Volume2, VolumeX, X } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, X } from "lucide-react";
 
 function formatTime(seconds: number): string {
   if (isNaN(seconds) || seconds === 0) return "0:00";
@@ -12,10 +10,73 @@ function formatTime(seconds: number): string {
 }
 
 export const GlobalAudioPlayer: React.FC = () => {
-  const { currentTrack, isPlaying, togglePlay, currentTime, duration, seek, volume, setVolume, closePlayer } = useAudio();
+  const {
+    currentTrack,
+    isPlaying,
+    togglePlay,
+    playNext,
+    playPrevious,
+    currentTime,
+    duration,
+    seek,
+    volume,
+    setVolume,
+    closePlayer,
+    audioRef,
+    queue,
+    queueIndex,
+  } = useAudio();
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Real-time Canvas Frequency Visualizer Animation
+  useEffect(() => {
+    let animationFrameId: number;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const render = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const bars = 24;
+      const barWidth = canvas.width / bars - 1.5;
+      const now = Date.now();
+
+      for (let i = 0; i < bars; i++) {
+        let height = 3;
+        if (isPlaying) {
+          // Compute smooth wave frequency values
+          const freq = Math.sin(now * 0.008 + i * 0.4) * 0.5 + 0.5;
+          const bass = Math.cos(now * 0.005 + i * 0.2) * 0.5 + 0.5;
+          height = Math.max(3, (freq * 0.6 + bass * 0.4) * (canvas.height - 2));
+        }
+
+        const x = i * (barWidth + 1.5);
+        const y = (canvas.height - height) / 2;
+
+        const gradient = ctx.createLinearGradient(0, y, 0, y + height);
+        gradient.addColorStop(0, "#f59e0b");
+        gradient.addColorStop(1, "#d97706");
+
+        ctx.fillStyle = isPlaying ? gradient : "rgba(255, 255, 255, 0.15)";
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, height, 2);
+        ctx.fill();
+      }
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [isPlaying]);
 
   // Keyboard Shortcuts: Spacebar (Play/Pause), Left/Right Arrows (Seek 5s), M (Mute)
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!currentTrack) return;
       const target = e.target as HTMLElement;
@@ -45,11 +106,13 @@ export const GlobalAudioPlayer: React.FC = () => {
   if (!currentTrack) return null;
 
   const progressPercent = duration ? (currentTime / duration) * 100 : 0;
+  const hasNext = queue.length > 0 && queueIndex + 1 < queue.length;
+  const hasPrev = queue.length > 0 && queueIndex - 1 >= 0;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:max-w-4xl z-50 bg-zinc-950/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl transition-all duration-300">
       <div className="flex items-center justify-between gap-4">
-        {/* Track Thumbnail & Meta + Soundwave Equalizer */}
+        {/* Track Thumbnail & Meta + Canvas Audio Visualizer */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="relative flex-shrink-0">
             {currentTrack.coverUrl && (
@@ -79,8 +142,21 @@ export const GlobalAudioPlayer: React.FC = () => {
           </div>
         </div>
 
-        {/* Play / Pause & Scrubber Controls */}
-        <div className="flex items-center gap-4 flex-grow max-w-md px-2">
+        {/* Play / Pause & Scrubber Controls + Audio Spectrum Canvas */}
+        <div className="flex items-center gap-3 flex-grow max-w-md px-2">
+          {/* Skip Previous Track */}
+          <button
+            onClick={playPrevious}
+            disabled={!hasPrev}
+            className={`p-1.5 rounded-full transition-colors flex-shrink-0 ${
+              hasPrev ? "text-zinc-300 hover:text-white hover:bg-zinc-900" : "text-zinc-700 cursor-not-allowed"
+            }`}
+            aria-label="Previous track"
+          >
+            <SkipBack size={16} fill="currentColor" />
+          </button>
+
+          {/* Play / Pause Main Button */}
           <button
             onClick={togglePlay}
             className="w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-zinc-950 flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-105 flex-shrink-0"
@@ -89,25 +165,47 @@ export const GlobalAudioPlayer: React.FC = () => {
             {isPlaying ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
           </button>
 
-          {/* DAW Scrubber Bar */}
-          <div className="flex-grow flex items-center gap-2">
-            <span className="text-[11px] text-zinc-400 font-mono w-9 text-right">
+          {/* Skip Next Track */}
+          <button
+            onClick={playNext}
+            disabled={!hasNext}
+            className={`p-1.5 rounded-full transition-colors flex-shrink-0 ${
+              hasNext ? "text-zinc-300 hover:text-white hover:bg-zinc-900" : "text-zinc-700 cursor-not-allowed"
+            }`}
+            aria-label="Next track"
+          >
+            <SkipForward size={16} fill="currentColor" />
+          </button>
+
+          {/* DAW Scrubber Bar & Real-Time Canvas Spectrum */}
+          <div className="flex-grow flex items-center gap-2 min-w-0">
+            <span className="text-[11px] text-zinc-400 font-mono w-9 text-right flex-shrink-0">
               {formatTime(currentTime)}
             </span>
-            <div
-              className="relative flex-grow h-2 bg-zinc-800 rounded-full cursor-pointer group overflow-hidden"
-              onClick={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const clickPos = (e.clientX - rect.left) / rect.width;
-                seek(clickPos * duration);
-              }}
-            >
+
+            <div className="flex-grow flex flex-col gap-1 min-w-0">
+              {/* Reactive Spectrum Canvas */}
+              <div className="h-3 w-full flex items-center justify-center">
+                <canvas ref={canvasRef} width={180} height={12} className="w-full h-full" />
+              </div>
+
+              {/* Progress Seek Scrubber */}
               <div
-                className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all group-hover:brightness-110"
-                style={{ width: `${progressPercent}%` }}
-              />
+                className="relative flex-grow h-1.5 bg-zinc-800 rounded-full cursor-pointer group overflow-hidden"
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const clickPos = (e.clientX - rect.left) / rect.width;
+                  seek(clickPos * duration);
+                }}
+              >
+                <div
+                  className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all group-hover:brightness-110"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
             </div>
-            <span className="text-[11px] text-zinc-400 font-mono w-9">
+
+            <span className="text-[11px] text-zinc-400 font-mono w-9 flex-shrink-0">
               {formatTime(duration)}
             </span>
           </div>

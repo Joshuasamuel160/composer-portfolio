@@ -20,8 +20,13 @@ interface AudioContextType {
   duration: number;
   currentTime: number;
   volume: number;
-  playTrack: (track: Track | SongData) => void;
+  queue: Track[];
+  queueIndex: number;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
+  playTrack: (track: Track | SongData, queueList?: (Track | SongData)[]) => void;
   togglePlay: () => void;
+  playNext: () => void;
+  playPrevious: () => void;
   seek: (time: number) => void;
   setVolume: (vol: number) => void;
   closePlayer: () => void;
@@ -63,6 +68,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [duration, setDuration] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [volume, setVolumeState] = useState<number>(0.85);
+  const [queue, setQueue] = useState<Track[]>([]);
+  const [queueIndex, setQueueIndex] = useState<number>(-1);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
@@ -125,8 +132,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               },
               onStateChange: (event: any) => {
                 if (window.YT && event.data === window.YT.PlayerState.ENDED) {
-                  setIsPlaying(false);
-                  setCurrentTime(0);
+                  handleTrackEnded();
                 }
               },
             },
@@ -140,11 +146,21 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     createNewPlayer();
   };
 
-  const playTrack = (inputTrack: Track | SongData) => {
+  const playTrack = (inputTrack: Track | SongData, queueList?: (Track | SongData)[]) => {
     const track = normalizeTrack(inputTrack);
     if (!track.audioUrl) return;
 
     const newYtId = extractYouTubeId(track.audioUrl);
+
+    if (queueList && queueList.length > 0) {
+      const normalizedQueue = queueList.map(normalizeTrack);
+      setQueue(normalizedQueue);
+      const idx = normalizedQueue.findIndex((t) => t.id === track.id);
+      setQueueIndex(idx >= 0 ? idx : 0);
+    } else if (queue.length === 0) {
+      setQueue([track]);
+      setQueueIndex(0);
+    }
 
     if (currentTrack?.id === track.id) {
       togglePlay();
@@ -166,6 +182,31 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
         }
       }
+    }
+  };
+
+  const playNext = () => {
+    if (queue.length > 0 && queueIndex + 1 < queue.length) {
+      const nextIdx = queueIndex + 1;
+      setQueueIndex(nextIdx);
+      playTrack(queue[nextIdx]);
+    }
+  };
+
+  const playPrevious = () => {
+    if (queue.length > 0 && queueIndex - 1 >= 0) {
+      const prevIdx = queueIndex - 1;
+      setQueueIndex(prevIdx);
+      playTrack(queue[prevIdx]);
+    }
+  };
+
+  const handleTrackEnded = () => {
+    if (queue.length > 0 && queueIndex + 1 < queue.length) {
+      playNext();
+    } else {
+      setIsPlaying(false);
+      setCurrentTime(0);
     }
   };
 
@@ -219,6 +260,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsPlaying(false);
     setCurrentTrack(null);
     setCurrentTime(0);
+    setQueue([]);
+    setQueueIndex(-1);
   };
 
   return (
@@ -229,8 +272,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         duration,
         currentTime,
         volume,
+        queue,
+        queueIndex,
+        audioRef,
         playTrack,
         togglePlay,
+        playNext,
+        playPrevious,
         seek,
         setVolume,
         closePlayer,
@@ -241,18 +289,14 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       <audio
         ref={audioRef}
         preload="auto"
+        crossOrigin="anonymous"
         onTimeUpdate={() => {
           if (!ytId && audioRef.current) setCurrentTime(audioRef.current.currentTime);
         }}
         onLoadedMetadata={() => {
           if (!ytId && audioRef.current) setDuration(audioRef.current.duration || 0);
         }}
-        onEnded={() => {
-          if (!ytId) {
-            setIsPlaying(false);
-            setCurrentTime(0);
-          }
-        }}
+        onEnded={handleTrackEnded}
       />
       {/* Hidden YouTube IFrame API Player Container */}
       <div id="yt-audio-player-container" className="hidden" />
