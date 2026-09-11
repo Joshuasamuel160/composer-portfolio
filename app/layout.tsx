@@ -19,6 +19,13 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Joshua Samuel — Composer & Music Producer",
   description: "Official portfolio of Joshua Samuel, composer & music producer for film, TV, songs, and brand campaigns.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({
