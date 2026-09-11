@@ -14,30 +14,29 @@ interface BrandStripProps {
   brands: BrandData[];
 }
 
-const OPTICAL_SIZES: Record<string, string> = {
-  "apple tv+": "h-[48px] sm:h-[62px] md:h-[74px] lg:h-[84px]",
-  "apple": "h-[48px] sm:h-[62px] md:h-[74px] lg:h-[84px]",
-  "warner bros": "h-[54px] sm:h-[68px] md:h-[80px] lg:h-[92px]",
-  "netflix": "h-[50px] sm:h-[64px] md:h-[76px] lg:h-[86px]",
-  "hbo": "h-[46px] sm:h-[58px] md:h-[72px] lg:h-[82px]",
-  "sony pictures": "h-[52px] sm:h-[66px] md:h-[78px] lg:h-[90px]",
-  "sony": "h-[52px] sm:h-[66px] md:h-[78px] lg:h-[90px]",
-  "a24": "h-[46px] sm:h-[58px] md:h-[70px] lg:h-[80px]",
-  "universal pictures": "h-[44px] sm:h-[56px] md:h-[68px] lg:h-[78px]",
-  "universal": "h-[44px] sm:h-[56px] md:h-[68px] lg:h-[78px]",
+// Global baseline default scale is 1.25x (scale(1.25)).
+// Individual scale overrides created only when optically necessary.
+const BRAND_SCALE_OVERRIDES: Record<string, string> = {
+  "universal": "scale(1.4)",
+  "universal pictures": "scale(1.4)",
+  "a24": "scale(1.35)",
+  "apple": "scale(1.15)",
+  "apple tv+": "scale(1.15)",
+  "warner bros": "scale(1.15)",
+  "warnerbros": "scale(1.15)",
 };
 
-const getOpticalClass = (name: string, logoUrl?: string) => {
+const getLogoScaleTransform = (name: string, logoUrl?: string) => {
   const normalized = name.toLowerCase().trim();
-  if (OPTICAL_SIZES[normalized]) return OPTICAL_SIZES[normalized];
-  for (const key of Object.keys(OPTICAL_SIZES)) {
-    if (normalized.includes(key)) return OPTICAL_SIZES[key];
+  if (BRAND_SCALE_OVERRIDES[normalized]) return BRAND_SCALE_OVERRIDES[normalized];
+  for (const key of Object.keys(BRAND_SCALE_OVERRIDES)) {
+    if (normalized.includes(key)) return BRAND_SCALE_OVERRIDES[key];
   }
   if (logoUrl) {
     const file = logoUrl.split("/").pop()?.replace(".svg", "").toLowerCase() || "";
-    if (OPTICAL_SIZES[file]) return OPTICAL_SIZES[file];
+    if (BRAND_SCALE_OVERRIDES[file]) return BRAND_SCALE_OVERRIDES[file];
   }
-  return "h-[48px] sm:h-[60px] md:h-[74px] lg:h-[84px]";
+  return "scale(1.25)"; // Global Default Baseline Scale
 };
 
 export const BrandStrip: React.FC<BrandStripProps> = ({ brands }) => {
@@ -77,13 +76,13 @@ export const BrandStrip: React.FC<BrandStripProps> = ({ brands }) => {
           CLIENTS & COLLABORATORS
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-10 sm:gap-14 md:gap-20 lg:gap-24">
+        <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 md:gap-14 lg:gap-16">
           {brands.map((brand) => {
-            const opticalClass = getOpticalClass(brand.name, brand.logoUrl);
+            const scaleTransform = getLogoScaleTransform(brand.name, brand.logoUrl);
             return (
               <div
                 key={brand.id}
-                className="brand-item group flex items-center justify-center h-20 sm:h-24 md:h-28 lg:h-32 bg-transparent cursor-pointer transition-transform duration-300 ease-out hover:scale-105"
+                className="brand-item group flex items-center justify-center w-[150px] sm:w-[180px] md:w-[200px] h-[90px] sm:h-[100px] md:h-[110px] bg-transparent cursor-pointer transition-transform duration-300 ease-out hover:scale-105"
               >
                 {brand.logoUrl ? (
                   <img
@@ -92,11 +91,12 @@ export const BrandStrip: React.FC<BrandStripProps> = ({ brands }) => {
                     loading="lazy"
                     style={{
                       filter: "brightness(0) saturate(100%) invert(82%)",
+                      transform: scaleTransform,
                     }}
-                    className={`${opticalClass} w-auto max-w-[260px] sm:max-w-[380px] md:max-w-[480px] lg:max-w-[560px] object-contain opacity-85 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:brightness-100 group-hover:invert-95`}
+                    className="max-w-[90%] max-h-[70px] sm:max-h-[75px] md:max-h-[80px] w-auto h-auto object-contain opacity-85 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:brightness-100 group-hover:invert-95"
                   />
                 ) : (
-                  <span className="text-2xl sm:text-3xl font-serif font-light text-[#C8C8C8] group-hover:text-[#E5E5E5] transition-colors uppercase tracking-widest text-center truncate">
+                  <span className="text-xl sm:text-2xl font-serif font-light text-[#C8C8C8] group-hover:text-[#E5E5E5] transition-colors uppercase tracking-widest text-center truncate">
                     {brand.name}
                   </span>
                 )}
