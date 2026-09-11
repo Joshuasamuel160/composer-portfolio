@@ -15,7 +15,7 @@ interface SongsClientProps {
 export const SongsClient: React.FC<SongsClientProps> = ({ albums, songs, artists }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [selectedArtistId, setSelectedArtistId] = useState<string | null>(null);
-  const [expandedAlbumId, setExpandedAlbumId] = useState<string | null>(albums[0]?.id || null);
+  const [expandedAlbumId, setExpandedAlbumId] = useState<string | null>(null);
   const { currentTrack, isPlaying, playTrack } = useAudio();
 
   // Selected Artist Name if filtering by artist badge
