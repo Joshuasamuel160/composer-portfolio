@@ -5,6 +5,7 @@ import { ArtistData } from "@/lib/mockData";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -22,6 +23,7 @@ export const ArtistStrip: React.FC<ArtistStripProps> = ({
   onSelectArtist,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
@@ -48,14 +50,43 @@ export const ArtistStrip: React.FC<ArtistStripProps> = ({
     { scope: containerRef }
   );
 
-  return (
-    <div ref={containerRef} className="py-2 mb-6 border-b border-white/5 relative">
-      <p className="text-[10px] font-mono tracking-[0.25em] text-zinc-500 uppercase mb-3">
-        FILTER BY ARTIST
-      </p>
+  const scrollSlider = (direction: "left" | "right") => {
+    if (!sliderRef.current) return;
+    const scrollAmount = direction === "left" ? -300 : 300;
+    sliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
 
-      {/* Horizontal Touch Reel Container */}
-      <div className="flex items-center gap-3 overflow-x-auto scrollbar-none py-1 snap-x flex-nowrap sm:flex-wrap -mx-6 px-6 sm:mx-0 sm:px-0">
+  return (
+    <div ref={containerRef} className="py-2 mb-6 border-b border-white/5 relative group/slider">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] font-mono tracking-[0.25em] text-zinc-500 uppercase">
+          FILTER BY ARTIST
+        </p>
+
+        {/* Desktop Left/Right Navigation Arrows */}
+        <div className="hidden sm:flex items-center gap-1.5">
+          <button
+            onClick={() => scrollSlider("left")}
+            className="p-1.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/5 hover:border-white/20 transition-all focus:outline-none"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            onClick={() => scrollSlider("right")}
+            className="p-1.5 rounded-full bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/5 hover:border-white/20 transition-all focus:outline-none"
+            aria-label="Scroll right"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Horizontal Slider Container (Desktop & Mobile) */}
+      <div
+        ref={sliderRef}
+        className="flex items-center gap-3 overflow-x-auto scrollbar-none py-1.5 snap-x flex-nowrap -mx-6 px-6 sm:mx-0 sm:px-0 scroll-smooth"
+      >
         {/* All Artists Reset Button */}
         <button
           onClick={() => onSelectArtist(null)}
