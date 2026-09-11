@@ -1,10 +1,8 @@
-import { getBio, getBrands, getHeroReels } from "@/lib/sanity/fetch";
+import { getBio, getHeroReels } from "@/lib/sanity/fetch";
 import { Hero } from "@/components/Hero";
-import { BrandStrip } from "@/components/BrandStrip";
 
 export default async function HomePage() {
   const bio = await getBio();
-  const brands = await getBrands();
   const heroReels = await getHeroReels();
 
   return (
@@ -15,9 +13,6 @@ export default async function HomePage() {
         tagline={bio.tagline}
         featuredReels={heroReels}
       />
-
-      {/* Client / Collaborators Brand Strip */}
-      <BrandStrip brands={brands} />
     </div>
   );
 }
