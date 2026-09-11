@@ -42,6 +42,8 @@ export const BrandStrip: React.FC<BrandStripProps> = ({ brands }) => {
     { scope: containerRef }
   );
 
+  if (!brands || brands.length === 0) return null;
+
   return (
     <section ref={containerRef} className="py-14 border-y border-white/5 bg-zinc-950/60 backdrop-blur-xs">
       <div className="max-w-7xl mx-auto px-6">
@@ -49,20 +51,21 @@ export const BrandStrip: React.FC<BrandStripProps> = ({ brands }) => {
           CLIENTS & COLLABORATORS
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14">
+        <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 md:gap-16">
           {brands.map((brand) => (
             <div
               key={brand.id}
-              className="brand-item group px-4 py-2 cursor-pointer flex items-center justify-center transition-transform duration-300 hover:scale-105"
+              className="brand-item group px-3 py-2 flex items-center justify-center h-12 w-28 sm:w-36 md:w-40 transition-transform duration-300 ease-out hover:scale-105"
             >
               {brand.logoUrl ? (
                 <img
                   src={brand.logoUrl}
-                  alt={brand.name}
-                  className="h-7 sm:h-9 md:h-10 max-w-[140px] sm:max-w-[180px] object-contain brightness-0 invert opacity-50 group-hover:opacity-90 transition-all duration-300"
+                  alt={`${brand.name} logo`}
+                  loading="lazy"
+                  className="max-h-full max-w-full object-contain filter grayscale opacity-50 transition-all duration-300 ease-out group-hover:grayscale-0 group-hover:opacity-100 group-hover:brightness-110"
                 />
               ) : (
-                <span className="text-lg md:text-xl font-serif font-light text-zinc-400 group-hover:text-amber-400 transition-colors uppercase tracking-widest">
+                <span className="text-base sm:text-lg font-serif font-light text-zinc-400 group-hover:text-amber-400 transition-colors uppercase tracking-widest text-center truncate">
                   {brand.name}
                 </span>
               )}

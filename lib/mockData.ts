@@ -130,12 +130,13 @@ export const mockContactInfo: ContactInfoData = {
 };
 
 export const mockBrands: BrandData[] = [
-  { id: "b1", name: "A24", logoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=200&h=80&q=80" },
-  { id: "b2", name: "HBO", logoUrl: "https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?auto=format&fit=crop&w=200&h=80&q=80" },
-  { id: "b3", name: "Nike", logoUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=200&h=80&q=80" },
-  { id: "b4", name: "Apple", logoUrl: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=200&h=80&q=80" },
-  { id: "b5", name: "Rolex", logoUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=200&h=80&q=80" },
-  { id: "b6", name: "Netflix", logoUrl: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&w=200&h=80&q=80" }
+  { id: "b1", name: "A24", logoUrl: "/images/brands/a24.svg" },
+  { id: "b2", name: "HBO", logoUrl: "/images/brands/hbo.svg" },
+  { id: "b3", name: "Warner Bros", logoUrl: "/images/brands/warnerbros.svg" },
+  { id: "b4", name: "Netflix", logoUrl: "/images/brands/netflix.svg" },
+  { id: "b5", name: "Apple TV+", logoUrl: "/images/brands/apple.svg" },
+  { id: "b6", name: "Universal Pictures", logoUrl: "/images/brands/universal.svg" },
+  { id: "b7", name: "Sony Pictures", logoUrl: "/images/brands/sony.svg" },
 ];
 
 export const mockArtists: ArtistData[] = [
