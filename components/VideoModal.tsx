@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { formatVideoEmbedUrl } from "@/lib/utils/formatVideoUrl";
+import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
 import { X, ExternalLink } from "lucide-react";
 
 interface VideoModalProps {
@@ -20,6 +20,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
   if (!isOpen) return null;
 
   const embedUrl = formatVideoEmbedUrl(videoUrl);
+  const isVideoFile = isDirectVideoFile(videoUrl);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
@@ -27,7 +28,7 @@ export const VideoModal: React.FC<VideoModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <h3 className="text-base font-light text-zinc-100 uppercase tracking-widest truncate">
-            {title} — TRAILER / CLIP
+            {title} — COMMERCIAL SPOT
           </h3>
           <button
             onClick={onClose}
@@ -38,19 +39,29 @@ export const VideoModal: React.FC<VideoModalProps> = ({
           </button>
         </div>
 
-        {/* Video Embed Container */}
+        {/* Video Player Container */}
         <div className="p-4 space-y-3">
           <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-white/10">
-            <iframe
-              src={embedUrl}
-              title={title}
-              className="w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="no-referrer-when-downgrade"
-              allowFullScreen
-            />
+            {isVideoFile ? (
+              <video
+                src={embedUrl}
+                controls
+                autoPlay
+                playsInline
+                className="w-full h-full object-contain bg-black"
+              />
+            ) : (
+              <iframe
+                src={embedUrl}
+                title={title}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            )}
           </div>
-          {videoUrl && (
+          {videoUrl && !isVideoFile && (
             <div className="flex justify-end px-2">
               <a
                 href={videoUrl}

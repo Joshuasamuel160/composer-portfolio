@@ -18,8 +18,15 @@ export const adCampaign = defineType({
       options: { hotspot: true },
     }),
     defineField({
+      name: "videoFile",
+      title: "Upload Commercial Video File (MP4/MOV)",
+      type: "file",
+      options: { accept: "video/mp4,video/quicktime,video/*" },
+      description: "Upload video file directly from your computer",
+    }),
+    defineField({
       name: "videoUrl",
-      title: "Commercial Spot Video Embed URL (YouTube/Vimeo)",
+      title: "Or Paste Commercial Spot Video URL (YouTube/Vimeo)",
       type: "url",
     }),
     defineField({
