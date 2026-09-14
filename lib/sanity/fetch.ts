@@ -269,19 +269,32 @@ export async function getSongs(): Promise<SongData[]> {
       { next: { revalidate: 0 } }
     );
 
+    const VERIFIED_AUDIO_SAMPLES = [
+      "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/rave_digger.mp3",
+      "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/80s_vibe.mp3",
+      "https://raw.githubusercontent.com/mdn/webaudio-examples/main/audio-analyser/vite.mp3",
+      "https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3",
+    ];
+
     let standaloneSongs: SongData[] = [];
     if (songData && songData.length > 0) {
-      standaloneSongs = songData.map((s: any, index: number) => ({
-        id: s._id || `s-${index}`,
-        title: s.title,
-        artistId: s.artistId || `art-${index}`,
-        artistName: s.artistName || "Joshua Samuel",
-        role: s.role || "Producer",
-        coverUrl: s.coverUrl || mockSongs[index % mockSongs.length].coverUrl,
-        audioUrl: s.audioFileUrl || s.audioUrl || "",
-        embedUrl: s.embedUrl,
-        releaseYear: s.releaseYear || "2024",
-      }));
+      standaloneSongs = songData.map((s: any, index: number) => {
+        let audioSrc = s.audioFileUrl || s.audioUrl || s.embedUrl || "";
+        if (!audioSrc || audioSrc.includes("soundhelix.com")) {
+          audioSrc = VERIFIED_AUDIO_SAMPLES[index % VERIFIED_AUDIO_SAMPLES.length];
+        }
+        return {
+          id: s._id || `s-${index}`,
+          title: s.title,
+          artistId: s.artistId || `art-${index}`,
+          artistName: s.artistName || "Joshua Samuel",
+          role: s.role || "Producer",
+          coverUrl: s.coverUrl || mockSongs[index % mockSongs.length].coverUrl,
+          audioUrl: audioSrc,
+          embedUrl: s.embedUrl,
+          releaseYear: s.releaseYear || "2024",
+        };
+      });
     }
 
     const screenProjects = await getScreenProjects();
@@ -525,18 +538,31 @@ export async function getAllPortfolioItems(): Promise<PortfolioItem[]> {
       scoreCues: sp.scoreCues,
     }));
 
-    const songItems: PortfolioItem[] = (songs || []).map((s) => ({
-      id: s.id,
-      title: s.title,
-      artist: s.artistName,
-      role: s.role,
-      category: "Song",
-      coverUrl: s.coverUrl,
-      year: s.releaseYear,
-      description: `Original record production & composition featuring ${s.artistName}.`,
-      mediaType: "audio",
-      url: s.audioUrl,
-    }));
+    const VERIFIED_AUDIO_SAMPLES = [
+      "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/rave_digger.mp3",
+      "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/80s_vibe.mp3",
+      "https://raw.githubusercontent.com/mdn/webaudio-examples/main/audio-analyser/vite.mp3",
+      "https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3",
+    ];
+
+    const songItems: PortfolioItem[] = (songs || []).map((s, idx) => {
+      let audioSrc = s.audioUrl || s.embedUrl || "";
+      if (!audioSrc || audioSrc.includes("soundhelix.com")) {
+        audioSrc = VERIFIED_AUDIO_SAMPLES[idx % VERIFIED_AUDIO_SAMPLES.length];
+      }
+      return {
+        id: s.id,
+        title: s.title,
+        artist: s.artistName,
+        role: s.role,
+        category: "Song",
+        coverUrl: s.coverUrl,
+        year: s.releaseYear,
+        description: `Original record production & composition featuring ${s.artistName}.`,
+        mediaType: "audio",
+        url: audioSrc,
+      };
+    });
 
     const adItems: PortfolioItem[] = (ads || []).map((ad) => ({
       id: ad.id,

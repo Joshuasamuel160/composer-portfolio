@@ -39,6 +39,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     duration,
     videoRef,
     playMedia,
+    selectMedia,
     startReel,
     togglePlay,
     playNext,
@@ -61,6 +62,25 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
   const items = allItems;
   const N = items.length;
 
+  // Initialize global audio context queue with Cover Flow items if empty or unset
+  useEffect(() => {
+    if (items.length > 0 && !currentTrack) {
+      const queueList: PlaylistItem[] = items.map((it) => ({
+        id: it.id,
+        title: it.title,
+        artist: it.artist,
+        role: it.role,
+        mediaType: it.mediaType,
+        url: it.url,
+        posterUrl: it.coverUrl,
+        coverUrl: it.coverUrl,
+        year: it.year,
+        category: it.category,
+      }));
+      selectMedia(queueList[0], queueList);
+    }
+  }, [items, currentTrack, selectMedia]);
+
   const activeItem = items[activeIndex] || items[0];
 
   // Match current active track with active item
@@ -81,7 +101,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     if (matchIndex !== -1 && matchIndex !== activeIndex) {
       setActiveIndex(matchIndex);
     }
-  }, [currentTrack, items]);
+  }, [currentTrack, items, activeIndex]);
 
   // Helper to trigger media playback for a target item
   const playItemMedia = useCallback(
@@ -117,18 +137,55 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     [items, playMedia]
   );
 
+  const selectItemMedia = useCallback(
+    (targetItem: PortfolioItem) => {
+      const queueList: PlaylistItem[] = items.map((it) => ({
+        id: it.id,
+        title: it.title,
+        artist: it.artist,
+        role: it.role,
+        mediaType: it.mediaType,
+        url: it.url,
+        posterUrl: it.coverUrl,
+        coverUrl: it.coverUrl,
+        year: it.year,
+        category: it.category,
+      }));
+
+      const targetPlaylistItem: PlaylistItem = {
+        id: targetItem.id,
+        title: targetItem.title,
+        artist: targetItem.artist,
+        role: targetItem.role,
+        mediaType: targetItem.mediaType,
+        url: targetItem.url,
+        posterUrl: targetItem.coverUrl,
+        coverUrl: targetItem.coverUrl,
+        year: targetItem.year,
+        category: targetItem.category,
+      };
+
+      selectMedia(targetPlaylistItem, queueList);
+    },
+    [items, selectMedia]
+  );
+
   // DIRECTION 2: SYNC COVER FLOW -> GLOBAL PLAYER
   // When user moves Cover Flow (Next, Prev, Click, Drag):
-  // If playback is currently active, seamlessly switch global playback to the newly centered cover!
+  // Seamlessly update global player active item whether playing or paused!
   const changeActiveIndex = useCallback(
     (newIndex: number) => {
       setActiveIndex(newIndex);
       const targetItem = items[newIndex];
-      if (targetItem && isPlaying) {
+      if (!targetItem) return;
+
+      if (isPlaying) {
         playItemMedia(targetItem);
+      } else {
+        selectItemMedia(targetItem);
       }
     },
-    [items, isPlaying, playItemMedia]
+    [items, isPlaying, playItemMedia, selectItemMedia]
   );
 
   // Circular Infinite Navigation Handlers

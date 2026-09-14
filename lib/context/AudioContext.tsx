@@ -40,6 +40,7 @@ interface AudioContextType {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   playMedia: (item: PlaylistItem | SongData | any, queueList?: (PlaylistItem | SongData | any)[], isReel?: boolean) => void;
   playTrack: (track: PlaylistItem | SongData | any, queueList?: (PlaylistItem | SongData | any)[]) => void; // Alias
+  selectMedia: (item: PlaylistItem | SongData | any, queueList?: (PlaylistItem | SongData | any)[]) => void;
   startReel: (category?: ReelCategory, customQueue?: PlaylistItem[]) => void;
   exitReel: () => void;
   togglePlay: () => void;
@@ -327,10 +328,33 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           audioRef.current.src = item.url;
           audioRef.current.volume = volume;
           audioRef.current.load();
-          audioRef.current.play().catch(() => {});
+          audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {
+            if (audioRef.current) {
+              audioRef.current.src = SAMPLE_AUDIO_FALLBACK;
+              audioRef.current.load();
+              audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+            }
+          });
         }
       }
     }
+  };
+
+  const selectMedia = (rawItem: any, queueList?: any[]) => {
+    const item = normalizePlaylistItem(rawItem);
+    if (!item.url) return;
+
+    if (queueList && queueList.length > 0) {
+      const normalizedQueue = queueList.map(normalizePlaylistItem);
+      setQueue(normalizedQueue);
+      const idx = normalizedQueue.findIndex((t) => t.id === item.id);
+      setQueueIndex(idx >= 0 ? idx : 0);
+    } else {
+      setQueue([item]);
+      setQueueIndex(0);
+    }
+
+    setCurrentItem(item);
   };
 
   const startReel = (category: ReelCategory = "FULL", customQueue?: PlaylistItem[]) => {
@@ -468,6 +492,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         videoRef,
         playMedia,
         playTrack: playMedia,
+        selectMedia,
         startReel,
         exitReel,
         togglePlay,
