@@ -28,7 +28,7 @@ const sampleProjects = [
     year: "2024",
     role: "Original Motion Picture Score",
     category: "Cinema",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
     description: "Award-winning psychological thriller exploring isolation in the Pacific Northwest wilderness. Official Selection Cannes 2024.",
     order: 1
   },
@@ -39,7 +39,7 @@ const sampleProjects = [
     year: "2023",
     role: "Series Composer (Episodes 1-8)",
     category: "Cinema",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
     description: "Epic historical drama miniseries featuring a 70-piece orchestral score recorded at Abbey Road Studios.",
     order: 2
   }
@@ -90,7 +90,7 @@ const sampleAds = [
     _id: "ad-1",
     _type: "adCampaign",
     brandName: "Rolex — Perpetually Forward",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
     description: "Original score + sound design for 60s international commercial spot.",
     order: 1
   },

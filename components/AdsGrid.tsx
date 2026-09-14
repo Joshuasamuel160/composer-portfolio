@@ -55,25 +55,6 @@ export const AdsGrid: React.FC<AdsGridProps> = ({ ads }) => {
 
   return (
     <div className="space-y-8">
-      {/* Category Reel Launcher Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-zinc-950 border border-white/10 shadow-xl">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs font-mono text-amber-500 uppercase tracking-widest">
-            <Sparkles size={14} />
-            <span>CONTINUOUS COMMERCIAL REEL</span>
-          </div>
-          <p className="text-xs text-zinc-400 font-light">
-            Autoplay through high-end commercial campaigns and luxury brand sound design spots continuously.
-          </p>
-        </div>
-
-        <button
-          onClick={handleStartAdsReel}
-          className="px-6 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-medium text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg transition-all hover:scale-105 flex-shrink-0"
-        >
-          <Play size={14} fill="currentColor" /> PLAY ADS REEL
-        </button>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {ads.map((ad) => (

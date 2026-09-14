@@ -227,7 +227,7 @@ export const mockScreenProjects: ScreenProjectData[] = [
     role: "Original Motion Picture Score",
     category: "Cinema",
     posterUrl: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=600&h=900&q=80",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
     description: "Award-winning psychological thriller exploring isolation in the Pacific Northwest wilderness. Official Selection Cannes 2024.",
     scoreCues: [
       {
@@ -257,7 +257,7 @@ export const mockScreenProjects: ScreenProjectData[] = [
     role: "Series Composer (Episodes 1-8)",
     category: "Cinema",
     posterUrl: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=600&h=900&q=80",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
     description: "Epic historical drama miniseries featuring a 70-piece orchestral score recorded at Abbey Road Studios.",
     scoreCues: [
       {
@@ -281,7 +281,7 @@ export const mockScreenProjects: ScreenProjectData[] = [
     role: "Original Score & Sound Design",
     category: "YouTube",
     posterUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&h=900&q=80",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
     description: "Independent short sci-fi narrative film accumulating over 4 million views online.",
     scoreCues: [
       {
@@ -299,7 +299,7 @@ export const mockScreenProjects: ScreenProjectData[] = [
     role: "Documentary Score",
     category: "YouTube",
     posterUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&h=900&q=80",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
     description: "Deep sea environmental documentary featuring experimental modular synthesizer textures and bowed bass.",
     scoreCues: [
       {
@@ -317,21 +317,21 @@ export const mockAds: AdCampaignData[] = [
     id: "ad-1",
     brandName: "Rolex — Perpetually Forward",
     thumbnailUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&h=500&q=80",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     description: "Original score + sound design for 60s international commercial spot."
   },
   {
     id: "ad-2",
     brandName: "Nike — Beyond Breath",
     thumbnailUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&h=500&q=80",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
     description: "High-octane hybrid orchestral-electronic score for global Olympics digital launch."
   },
   {
     id: "ad-3",
     brandName: "Apple Vision — Spatial Realities",
     thumbnailUrl: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=800&h=500&q=80",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
     description: "Ethereal synth composition & spatial audio soundscape for keynote launch trailer."
   }
 ];

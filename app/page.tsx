@@ -1,18 +1,17 @@
-import { getBio, getHeroReels } from "@/lib/sanity/fetch";
+import { getBio } from "@/lib/sanity/fetch";
 import { Hero } from "@/components/Hero";
+import { CoverFlow } from "@/components/CoverFlow";
 
 export default async function HomePage() {
   const bio = await getBio();
-  const heroReels = await getHeroReels();
 
   return (
-    <div className="space-y-16 pb-16">
-      {/* Hero with Multi-Track Showreel Player */}
-      <Hero
-        name={bio.name}
-        tagline={bio.tagline}
-        featuredReels={heroReels}
-      />
+    <div className="space-y-12 pb-16">
+      {/* Cinematic Hero Header */}
+      <Hero name={bio.name} tagline={bio.tagline} />
+
+      {/* 3D Discography Cover Flow Showcase & PLAY FULL REEL Feature */}
+      <CoverFlow />
     </div>
   );
 }
