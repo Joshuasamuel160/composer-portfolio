@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { ScreenProjectData } from "@/lib/mockData";
 import { FilmDetailModal } from "./FilmDetailModal";
-import { Play, Film, Music } from "lucide-react";
+import { useAudio } from "@/lib/context/AudioContext";
+import { Play, Film, Music, Sparkles } from "lucide-react";
 
 interface ScreenGridProps {
   projects: ScreenProjectData[];
@@ -12,14 +13,51 @@ interface ScreenGridProps {
 export const ScreenGrid: React.FC<ScreenGridProps> = ({ projects }) => {
   const [selectedProject, setSelectedProject] = useState<ScreenProjectData | null>(null);
   const [expandedCardIds, setExpandedCardIds] = useState<Record<string, boolean>>({});
+  const { startReel, playMedia } = useAudio();
 
   const toggleCardExpand = (e: React.MouseEvent, id: string) => {
     e.stopPropagation(); // Don't trigger modal pop-up when toggling read more
     setExpandedCardIds((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const handleStartScreenReel = () => {
+    const screenQueue = projects.map((sp) => ({
+      id: `screen-reel-${sp.id}`,
+      title: sp.title,
+      artist: sp.productionCompany || sp.director || "Joshua Samuel",
+      role: `${sp.role} (${sp.year})`,
+      mediaType: "video" as const,
+      url: sp.videoUrl,
+      posterUrl: sp.posterUrl,
+      year: sp.year,
+      category: "Screen",
+      scoreCues: sp.scoreCues,
+    }));
+    startReel("SCREEN", screenQueue);
+  };
+
   return (
-    <>
+    <div className="space-y-8">
+      {/* Category Reel Launcher Banner */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-3xl bg-zinc-950 border border-white/10 shadow-xl">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs font-mono text-amber-500 uppercase tracking-widest">
+            <Sparkles size={14} />
+            <span>CONTINUOUS SCREEN REEL</span>
+          </div>
+          <p className="text-xs text-zinc-400 font-light">
+            Autoplay through feature film trailers & television miniseries reels back-to-back without interruption.
+          </p>
+        </div>
+
+        <button
+          onClick={handleStartScreenReel}
+          className="px-6 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-medium text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg transition-all hover:scale-105 flex-shrink-0"
+        >
+          <Play size={14} fill="currentColor" /> PLAY SCREEN REEL
+        </button>
+      </div>
+
       {/* Clean Film Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
         {projects.map((project) => (
@@ -111,11 +149,11 @@ export const ScreenGrid: React.FC<ScreenGridProps> = ({ projects }) => {
         ))}
       </div>
 
-      {/* Film Detail Modal: Shows Trailer Video + Score Cues Directly Beneath It */}
+      {/* Film Detail Modal: Shows Trailer Video + Score Cues */}
       <FilmDetailModal
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
       />
-    </>
+    </div>
   );
 };

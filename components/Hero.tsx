@@ -3,7 +3,7 @@
 import React, { useRef, useState } from "react";
 import { useAudio } from "@/lib/context/AudioContext";
 import { SongData } from "@/lib/mockData";
-import { Play, Pause, SkipBack, SkipForward, Music } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Music, Sparkles } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
@@ -24,7 +24,7 @@ export const Hero: React.FC<HeroProps> = ({ name, tagline, featuredReels }) => {
   const playerRef = useRef<HTMLDivElement>(null);
 
   const [activeTrackIndex, setActiveTrackIndex] = useState(0);
-  const { currentTrack, isPlaying, playTrack } = useAudio();
+  const { currentTrack, isPlaying, playTrack, startReel, isReelMode } = useAudio();
 
   const currentReel = featuredReels[activeTrackIndex] || featuredReels[0];
   const isThisPlaying = currentTrack?.id === currentReel.id && isPlaying;
@@ -160,8 +160,8 @@ export const Hero: React.FC<HeroProps> = ({ name, tagline, featuredReels }) => {
               </p>
             </div>
 
-            {/* Music Player Transport Buttons (Prev, Play/Pause, Next) */}
-            <div className="flex items-center gap-3 pt-1">
+            {/* Music Player Transport Buttons (Prev, Play/Pause, Next & FULL REEL) */}
+            <div className="flex flex-wrap items-center gap-3 pt-1">
               <button
                 onClick={handlePrevTrack}
                 className="w-9 h-9 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white flex items-center justify-center transition-all border border-white/10"
@@ -173,7 +173,7 @@ export const Hero: React.FC<HeroProps> = ({ name, tagline, featuredReels }) => {
 
               <button
                 onClick={() => playTrack(currentReel)}
-                className="px-5 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-medium text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg transition-all hover:scale-105"
+                className="px-4 py-2 rounded-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-medium text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg transition-all hover:scale-105"
               >
                 {isThisPlaying ? (
                   <>
@@ -193,6 +193,16 @@ export const Hero: React.FC<HeroProps> = ({ name, tagline, featuredReels }) => {
                 title="Next Track"
               >
                 <SkipForward size={16} fill="currentColor" />
+              </button>
+
+              {/* PLAY FULL REEL BUTTON */}
+              <button
+                onClick={() => startReel("FULL")}
+                className="px-4 py-2 rounded-full bg-zinc-900 hover:bg-zinc-800 text-amber-300 hover:text-amber-200 border border-amber-500/40 font-medium text-xs uppercase tracking-widest flex items-center gap-1.5 transition-all hover:scale-105 shadow-md shadow-amber-500/10"
+                title="Play continuous portfolio showreel mixing film trailers, songs, and commercial spots"
+              >
+                <Sparkles size={14} className="text-amber-400" />
+                PLAY FULL REEL
               </button>
             </div>
           </div>

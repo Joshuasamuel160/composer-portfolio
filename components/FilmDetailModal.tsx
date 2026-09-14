@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { ScreenProjectData } from "@/lib/mockData";
 import { useAudio } from "@/lib/context/AudioContext";
 import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
-import { X, Play, Pause, Music } from "lucide-react";
+import { X, Play, Pause, Music, Tv, ExternalLink } from "lucide-react";
 
 interface FilmDetailModalProps {
   project: ScreenProjectData | null;
@@ -12,7 +12,7 @@ interface FilmDetailModalProps {
 }
 
 export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClose }) => {
-  const { currentTrack, isPlaying, playTrack, togglePlay } = useAudio();
+  const { currentItem, isPlaying, playMedia, togglePlay } = useAudio();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const videoContainerRef = useRef<HTMLDivElement | null>(null);
   const modalOverlayRef = useRef<HTMLDivElement | null>(null);
@@ -22,14 +22,12 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
   const embedUrl = project ? formatVideoEmbedUrl(project.videoUrl) : "";
   const isVideoFile = project ? isDirectVideoFile(project.videoUrl) : false;
 
-  // Add autoplay with sound (&autoplay=1&mute=0) for embeds
   const autoPlayEmbedUrl = embedUrl
     ? embedUrl.includes("?")
       ? `${embedUrl}&autoplay=1&mute=0`
       : `${embedUrl}?autoplay=1&mute=0`
     : "";
 
-  // Scroll window AND modal overlay to the very top whenever a project is opened
   useEffect(() => {
     if (project) {
       if (typeof window !== "undefined") {
@@ -43,7 +41,6 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
     }
   }, [project]);
 
-  // Pause global site audio when video modal opens so trailer audio plays clearly
   useEffect(() => {
     if (project && isPlaying && embedUrl) {
       togglePlay();
@@ -51,45 +48,23 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
     setIsDescriptionExpanded(false);
   }, [project]);
 
-  // Netflix-style scroll listener: pause video when scrolled out of view
-  useEffect(() => {
-    if (!videoContainerRef.current) return;
+  const handlePlayInPersistentPlayer = () => {
+    if (!project || !project.videoUrl) return;
+    if (videoRef.current) videoRef.current.pause();
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (videoRef.current) {
-            if (entry.isIntersecting) {
-              videoRef.current.play().catch(() => {});
-              setIsVideoPlaying(true);
-            } else {
-              videoRef.current.pause();
-              setIsVideoPlaying(false);
-            }
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-
-    observer.observe(videoContainerRef.current);
-    return () => observer.disconnect();
-  }, [project]);
-
-  const toggleVideoPlay = () => {
-    if (isPlaying) {
-      togglePlay();
-    }
-
-    if (videoRef.current) {
-      if (videoRef.current.paused) {
-        videoRef.current.play().catch(() => {});
-        setIsVideoPlaying(true);
-      } else {
-        videoRef.current.pause();
-        setIsVideoPlaying(false);
-      }
-    }
+    playMedia({
+      id: `screen-video-${project.id}`,
+      title: project.title,
+      artist: project.productionCompany || project.director || "Joshua Samuel",
+      role: `${project.role} (${project.year})`,
+      mediaType: "video",
+      url: project.videoUrl,
+      posterUrl: project.posterUrl,
+      year: project.year,
+      category: "Screen",
+      scoreCues: project.scoreCues,
+    });
+    onClose();
   };
 
   const handlePlayScoreCue = (cue: { id: string; title: string; duration: string; audioUrl: string }) => {
@@ -105,23 +80,17 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
       title: c.title,
       artist: project.title,
       role: `${project.role} (${project.year})`,
-      coverUrl: project.posterUrl,
+      mediaType: "audio" as const,
+      url: c.audioUrl,
+      posterUrl: project.posterUrl,
       audioUrl: c.audioUrl,
       year: project.year,
     }));
 
     const cueTrackId = `${project.id}-${cue.id}`;
-    const targetTrack = cueQueue.find((t) => t.id === cueTrackId) || {
-      id: cueTrackId,
-      title: cue.title,
-      artist: project.title,
-      role: `${project.role} (${project.year})`,
-      coverUrl: project.posterUrl,
-      audioUrl: cue.audioUrl,
-      year: project.year,
-    };
+    const targetTrack = cueQueue.find((t) => t.id === cueTrackId) || cueQueue[0];
 
-    playTrack(targetTrack, cueQueue);
+    playMedia(targetTrack, cueQueue);
   };
 
   if (!project) return null;
@@ -139,7 +108,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-4xl bg-zinc-950 border border-white/10 rounded-3xl overflow-hidden shadow-2xl my-auto text-left"
       >
-        {/* Modal Header (Sticky Header) */}
+        {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-zinc-900/90 backdrop-blur-md sticky top-0 z-20">
           <div className="flex items-center gap-3 min-w-0">
             <span
@@ -158,59 +127,56 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
             </h3>
           </div>
 
-          <button
-            onClick={() => {
-              if (videoRef.current) videoRef.current.pause();
-              onClose();
-            }}
-            className="p-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-            aria-label="Close modal"
-          >
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            {project.videoUrl && (
+              <button
+                onClick={handlePlayInPersistentPlayer}
+                className="px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-mono uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                title="Keep playing trailer while browsing other pages"
+              >
+                <Tv size={12} /> PIP PLAYER
+              </button>
+            )}
+            <button
+              onClick={() => {
+                if (videoRef.current) videoRef.current.pause();
+                onClose();
+              }}
+              className="p-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              aria-label="Close modal"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
-        {/* Modal Content - Full Unclipped Length */}
+        {/* Modal Content */}
         <div className="p-6 space-y-6">
-          {/* Top: Video Trailer OR Clean Film Poster when no trailer exists */}
+          {/* Top: Video Trailer OR Clean Film Poster */}
           {embedUrl ? (
             <div className="space-y-2" ref={videoContainerRef}>
-              <div
-                onClick={toggleVideoPlay}
-                className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg cursor-pointer group flex items-center justify-center"
-              >
+              <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg flex items-center justify-center">
                 {isVideoFile ? (
-                  <>
-                    <video
-                      ref={videoRef}
-                      src={embedUrl}
-                      autoPlay
-                      loop
-                      muted={false}
-                      playsInline
-                      className="w-full h-full object-contain bg-black"
-                    />
-                    {!isVideoPlaying && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-xs">
-                        <div className="w-14 h-14 rounded-full bg-amber-500/90 text-zinc-950 flex items-center justify-center shadow-xl">
-                          <Play size={24} fill="currentColor" className="ml-1" />
-                        </div>
-                      </div>
-                    )}
-                  </>
+                  <video
+                    ref={videoRef}
+                    src={embedUrl}
+                    controls
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-contain bg-black"
+                  />
                 ) : (
                   <iframe
                     src={autoPlayEmbedUrl}
                     title={project.title}
                     className="w-full h-full border-0 object-contain"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; autoplay"
-                    referrerPolicy="no-referrer-when-downgrade"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
                   />
                 )}
               </div>
             </div>
           ) : (
-            /* Fallback: Clean Film Poster Image */
             <div className="space-y-2">
               <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black border border-white/10 shadow-lg flex items-center justify-center">
                 <img
@@ -228,7 +194,6 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
               {project.role}
             </p>
 
-            {/* Film Credits Strip */}
             {(project.director || project.executiveProducer || project.productionCompany) && (
               <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs font-mono text-zinc-400 py-2 border-y border-white/5">
                 {project.director && (
@@ -249,7 +214,6 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
               </div>
             )}
 
-            {/* Description with 2-3 Lines + Read More Toggle */}
             {project.description && (
               <div className="space-y-1 pt-1">
                 <p
@@ -271,7 +235,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
             )}
           </div>
 
-          {/* Under Video: Film Score Cues Playlist (Renders ALL cues in full view) */}
+          {/* Under Video: Film Score Cues Playlist */}
           {project.scoreCues && project.scoreCues.length > 0 && (
             <div className="pt-6 border-t border-white/10 space-y-3">
               <div className="flex items-center justify-between">
@@ -286,7 +250,7 @@ export const FilmDetailModal: React.FC<FilmDetailModalProps> = ({ project, onClo
               <div className="space-y-2">
                 {project.scoreCues.map((cue) => {
                   const cueTrackId = `${project.id}-${cue.id}`;
-                  const isCuePlaying = currentTrack?.id === cueTrackId && isPlaying;
+                  const isCuePlaying = currentItem?.id === cueTrackId && isPlaying;
 
                   return (
                     <div
