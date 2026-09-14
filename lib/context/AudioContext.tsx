@@ -304,6 +304,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       setCurrentItem(item);
+      setIsPlaying(true);
 
       if (newYtId) {
         initYtPlayer(newYtId);
@@ -311,13 +312,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (videoRef.current) {
           videoRef.current.src = item.url;
           videoRef.current.volume = volume;
-          videoRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+          videoRef.current.play().catch(() => {});
         }
       } else {
         if (audioRef.current) {
           audioRef.current.src = item.url;
           audioRef.current.volume = volume;
-          audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+          audioRef.current.play().catch(() => {});
         }
       }
     }
@@ -483,6 +484,25 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         onLoadedMetadata={() => {
           if (!ytId && currentItem?.mediaType !== "video" && audioRef.current) {
             setDuration(audioRef.current.duration || 0);
+          }
+        }}
+        onEnded={handleItemEnded}
+      />
+
+      {/* HTML5 Native Video Player for MP4 files */}
+      <video
+        ref={videoRef}
+        preload="auto"
+        playsInline
+        className="hidden"
+        onTimeUpdate={() => {
+          if (currentItem?.mediaType === "video" && videoRef.current) {
+            setCurrentTime(videoRef.current.currentTime);
+          }
+        }}
+        onLoadedMetadata={() => {
+          if (currentItem?.mediaType === "video" && videoRef.current) {
+            setDuration(videoRef.current.duration || 0);
           }
         }}
         onEnded={handleItemEnded}

@@ -1,10 +1,16 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useAudio, PlaylistItem } from "@/lib/context/AudioContext";
 import { PortfolioItem, getAllPortfolioItems } from "@/lib/sanity/fetch";
 import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
 import { Play, Pause, ChevronLeft, ChevronRight, Sparkles, Volume2 } from "lucide-react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(useGSAP);
+}
 
 interface CoverFlowProps {
   items?: PortfolioItem[];
@@ -21,9 +27,9 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
   const [allItems, setAllItems] = useState<PortfolioItem[]>(initialItems || []);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Mouse Parallax Tilt state for active card
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const detailsRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
 
   const {
@@ -57,25 +63,25 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
   const activeItem = items[activeIndex] || items[0];
 
-  // Helper to check if current track matches active item
+  // Match current active track with active item
   const isThisPlaying =
     Boolean(currentTrack) &&
     Boolean(activeItem) &&
     (currentTrack?.id === activeItem?.id || currentTrack?.title === activeItem?.title) &&
     isPlaying;
 
-  // Circular Infinite Navigation Handlers
-  const handlePrev = () => {
+  // Infinite Circular Navigation Handlers
+  const handlePrev = useCallback(() => {
     if (N === 0) return;
     setActiveIndex((prev) => (prev - 1 + N) % N);
-  };
+  }, [N]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (N === 0) return;
     setActiveIndex((prev) => (prev + 1) % N);
-  };
+  }, [N]);
 
-  // Keyboard Arrow Key Navigation
+  // Keyboard Navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -96,9 +102,9 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [N]);
+  }, [handlePrev, handleNext]);
 
-  // Touch Swipe Handlers for mobile & tablet
+  // Touch Drag & Swipe Physics
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -115,17 +121,60 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     touchStartX.current = null;
   };
 
-  // Mouse Parallax Tilt Effect on Active Card
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: x * 12, y: -y * 12 });
-  };
+  // GSAP Ultra-Fluid 3D Animation for Card Motion
+  useGSAP(
+    () => {
+      if (!items || items.length === 0) return;
 
-  const handleMouseLeave = () => {
-    setTilt({ x: 0, y: 0 });
-  };
+      items.forEach((_, index) => {
+        const card = cardsRef.current[index];
+        if (!card) return;
+
+        // Circular shortest distance
+        let offset = index - activeIndex;
+        if (N > 0) {
+          if (offset > N / 2) offset -= N;
+          if (offset < -N / 2) offset += N;
+        }
+
+        const absOffset = Math.abs(offset);
+        const isCurrentActive = offset === 0;
+
+        // Perspective 3D math
+        const rotateY = isCurrentActive ? 0 : Math.sign(offset) * -Math.pow(absOffset, 0.72) * 32;
+        const spacing = typeof window !== "undefined" && window.innerWidth < 640 ? 130 : 190;
+        const translateX = isCurrentActive ? 0 : offset * spacing + Math.sign(offset) * 45;
+        const translateZ = isCurrentActive ? 150 : -Math.pow(absOffset, 1.25) * 95;
+        const scale = isCurrentActive ? 1.06 : Math.max(0.65, 1 - absOffset * 0.12);
+        const opacity = absOffset > 4 ? 0 : isCurrentActive ? 1 : Math.max(0.3, 1 - absOffset * 0.22);
+        const blur = isCurrentActive ? 0 : Math.min(6, Math.pow(absOffset, 1.1) * 1.3);
+        const zIndex = 50 - absOffset;
+
+        gsap.to(card, {
+          x: translateX,
+          z: translateZ,
+          rotateY: rotateY,
+          scale: scale,
+          opacity: opacity,
+          filter: blur > 0 ? `blur(${blur}px)` : "none",
+          zIndex: zIndex,
+          duration: 0.65,
+          ease: "power3.out",
+          overwrite: "auto",
+        });
+      });
+
+      // Animate active details text fade-in
+      if (detailsRef.current) {
+        gsap.fromTo(
+          detailsRef.current,
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }
+        );
+      }
+    },
+    { dependencies: [activeIndex, items.length], scope: containerRef }
+  );
 
   const handlePlayCurrentItem = () => {
     if (!activeItem) return;
@@ -148,21 +197,20 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
       category: it.category,
     }));
 
-    playMedia(
-      {
-        id: activeItem.id,
-        title: activeItem.title,
-        artist: activeItem.artist,
-        role: activeItem.role,
-        mediaType: activeItem.mediaType,
-        url: activeItem.url,
-        posterUrl: activeItem.coverUrl,
-        coverUrl: activeItem.coverUrl,
-        year: activeItem.year,
-        category: activeItem.category,
-      },
-      queueList
-    );
+    const targetPlaylistItem: PlaylistItem = {
+      id: activeItem.id,
+      title: activeItem.title,
+      artist: activeItem.artist,
+      role: activeItem.role,
+      mediaType: activeItem.mediaType,
+      url: activeItem.url,
+      posterUrl: activeItem.coverUrl,
+      coverUrl: activeItem.coverUrl,
+      year: activeItem.year,
+      category: activeItem.category,
+    };
+
+    playMedia(targetPlaylistItem, queueList);
   };
 
   const handleStartFullReel = () => {
@@ -187,8 +235,8 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto py-4 space-y-6 select-none">
-      {/* 3D Infinite Looping Cover Flow Stage Viewport */}
+    <div className="w-full max-w-7xl mx-auto py-2 space-y-6 select-none">
+      {/* GSAP-Powered 3D Infinite Looping Cover Flow Stage */}
       <div
         ref={containerRef}
         onTouchStart={handleTouchStart}
@@ -219,63 +267,36 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
           <ChevronRight size={24} />
         </button>
 
-        {/* Infinite Looping 3D Curved Cards Track */}
+        {/* 3D Cards Track */}
         <div className="relative w-full h-full flex items-center justify-center overflow-visible">
           {items.map((item, index) => {
-            // Circular Shortest Distance Calculation for Infinite Looping
             let offset = index - activeIndex;
             if (N > 0) {
               if (offset > N / 2) offset -= N;
               if (offset < -N / 2) offset += N;
             }
 
-            const absOffset = Math.abs(offset);
-
-            // Hide cards beyond 4 steps distance
-            if (absOffset > 4) return null;
-
             const isCurrentActive = offset === 0;
             const isVideo = item.mediaType === "video";
             const isDirectVideo = isVideo && isDirectVideoFile(item.url);
 
-            // Organic smooth perspective calculations
-            const rotateY = isCurrentActive
-              ? tilt.x
-              : Math.sign(offset) * -Math.pow(absOffset, 0.7) * 30;
-
-            const rotateX = isCurrentActive ? tilt.y : 0;
-
-            const spacing = typeof window !== "undefined" && window.innerWidth < 640 ? 130 : 185;
-            const translateX = isCurrentActive
-              ? 0
-              : offset * spacing + Math.sign(offset) * 45;
-
-            const translateZ = isCurrentActive ? 150 : -Math.pow(absOffset, 1.2) * 90;
-            const scale = isCurrentActive ? 1.06 : Math.max(0.68, 1 - absOffset * 0.12);
-            const opacity = isCurrentActive ? 1 : Math.max(0.35, 1 - absOffset * 0.2);
-            const blur = isCurrentActive ? 0 : Math.min(5, Math.pow(absOffset, 1.1) * 1.2);
-            const zIndex = 50 - absOffset;
-
             return (
               <div
                 key={item.id}
+                ref={(el) => {
+                  cardsRef.current[index] = el;
+                }}
                 onClick={() => {
                   if (!isCurrentActive) {
                     setActiveIndex(index);
                   }
                 }}
-                onMouseMove={isCurrentActive ? handleMouseMove : undefined}
-                onMouseLeave={isCurrentActive ? handleMouseLeave : undefined}
-                className="absolute top-1/2 left-1/2 -mt-32 sm:-mt-44 md:-mt-52 -ml-28 sm:-ml-36 md:-ml-48 w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96 transition-all duration-500 ease-out cursor-pointer group"
+                className="absolute top-1/2 left-1/2 -mt-32 sm:-mt-44 md:-mt-52 -ml-28 sm:-ml-36 md:-ml-48 w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96 cursor-pointer group"
                 style={{
-                  transform: `translate3d(${translateX}px, -50%, ${translateZ}px) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale(${scale})`,
-                  zIndex: zIndex,
-                  opacity: opacity,
-                  filter: blur > 0 ? `blur(${blur}px)` : "none",
                   transformStyle: "preserve-3d",
                 }}
               >
-                {/* Vinyl / Poster Container */}
+                {/* Vinyl / Poster Card Container */}
                 <div
                   className={`relative w-full h-full rounded-2xl overflow-hidden bg-zinc-950 border transition-all duration-300 shadow-2xl ${
                     isCurrentActive
@@ -334,7 +355,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                               key={i}
                               className="w-1.5 bg-gradient-to-t from-amber-600 via-amber-400 to-amber-300 rounded-full transition-all duration-300 shadow-md shadow-amber-500/30"
                               style={{
-                                height: `${Math.max(15, (h * (0.45 + (i % 4) * 0.15)))}%`,
+                                height: `${Math.max(15, h * (0.45 + (i % 4) * 0.15))}%`,
                                 animation: `pulseBar 0.75s ease-in-out infinite alternate`,
                                 animationDelay: `${i * 0.04}s`,
                               }}
@@ -391,7 +412,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                         </span>
                       </div>
 
-                      {/* Play Button Overlay on Hover or Click for Center Active Card */}
+                      {/* Play Button Overlay on Active Card */}
                       {isCurrentActive && (
                         <div
                           onClick={handlePlayCurrentItem}
@@ -424,7 +445,10 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
       {/* Active Project Details Card & Transport Buttons */}
       {activeItem && (
-        <div className="cinematic-card rounded-3xl p-6 sm:p-8 border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl bg-zinc-950/90 relative overflow-hidden">
+        <div
+          ref={detailsRef}
+          className="cinematic-card rounded-3xl p-6 sm:p-8 border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl bg-zinc-950/90 relative overflow-hidden"
+        >
           {/* Ambient Accent Line */}
           <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
 
