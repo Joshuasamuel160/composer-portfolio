@@ -174,7 +174,7 @@ export const mockSongs: SongData[] = [
     artistName: "Serafina",
     role: "Producer & Arranger",
     coverUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=400&h=400&q=80",
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    audioUrl: "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/rave_digger.mp3",
     releaseYear: "2024"
   },
   {
@@ -184,7 +184,7 @@ export const mockSongs: SongData[] = [
     artistName: "Kaelen Voss",
     role: "Producer & Mixing Engineer",
     coverUrl: "https://images.unsplash.com/photo-1507838153414-b4b713384a76?auto=format&fit=crop&w=400&h=400&q=80",
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    audioUrl: "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/80s_vibe.mp3",
     releaseYear: "2024"
   },
   {
@@ -194,7 +194,7 @@ export const mockSongs: SongData[] = [
     artistName: "Echo Horizon",
     role: "Co-Producer & Additional Synths",
     coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&h=400&q=80",
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    audioUrl: "https://raw.githubusercontent.com/mdn/webaudio-examples/main/audio-analyser/vite.mp3",
     releaseYear: "2023"
   },
   {
@@ -204,7 +204,7 @@ export const mockSongs: SongData[] = [
     artistName: "Lydia Thorne",
     role: "String Arranger & Orchestrator",
     coverUrl: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=400&h=400&q=80",
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+    audioUrl: "https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3",
     releaseYear: "2023"
   },
   {
@@ -214,7 +214,7 @@ export const mockSongs: SongData[] = [
     artistName: "Serafina",
     role: "Producer & Sound Design",
     coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&h=400&q=80",
-    audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+    audioUrl: "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/rave_digger.mp3",
     releaseYear: "2023"
   }
 ];
@@ -234,19 +234,19 @@ export const mockScreenProjects: ScreenProjectData[] = [
         id: "cue-101",
         title: "Cue 01: Main Theme (Opening Sequence)",
         duration: "2:45",
-        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"
+        audioUrl: "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/80s_vibe.mp3"
       },
       {
         id: "cue-102",
         title: "Cue 02: Fog over the Ridge",
         duration: "1:50",
-        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"
+        audioUrl: "https://raw.githubusercontent.com/mdn/webaudio-examples/main/audio-analyser/vite.mp3"
       },
       {
         id: "cue-103",
         title: "Cue 03: Final Descent",
         duration: "3:10",
-        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"
+        audioUrl: "https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3"
       }
     ]
   },
@@ -264,13 +264,13 @@ export const mockScreenProjects: ScreenProjectData[] = [
         id: "cue-201",
         title: "Cue 01: Kingdom of Ashes (Main Title)",
         duration: "3:20",
-        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"
+        audioUrl: "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/rave_digger.mp3"
       },
       {
         id: "cue-202",
         title: "Cue 02: March to the Frontier",
         duration: "2:15",
-        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"
+        audioUrl: "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/80s_vibe.mp3"
       }
     ]
   },
@@ -288,7 +288,7 @@ export const mockScreenProjects: ScreenProjectData[] = [
         id: "cue-301",
         title: "Cue 01: Event Horizon Motif",
         duration: "2:05",
-        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3"
+        audioUrl: "https://raw.githubusercontent.com/mdn/webaudio-examples/main/audio-analyser/vite.mp3"
       }
     ]
   },
@@ -306,7 +306,7 @@ export const mockScreenProjects: ScreenProjectData[] = [
         id: "cue-401",
         title: "Cue 01: Abyss Echoes",
         duration: "3:40",
-        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3"
+        audioUrl: "https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3"
       }
     ]
   }

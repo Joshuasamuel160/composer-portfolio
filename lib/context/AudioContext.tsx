@@ -68,9 +68,16 @@ function isExternalStreamingPage(url: string | undefined): boolean {
   );
 }
 
+const SAMPLE_AUDIO_FALLBACK = "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/rave_digger.mp3";
+
 export function normalizePlaylistItem(raw: any): PlaylistItem {
-  const url = raw.url || raw.audioUrl || raw.videoUrl || "";
-  const isVideo = raw.mediaType === "video" || Boolean(raw.videoUrl) || isDirectVideoFile(url) || Boolean(extractYouTubeId(url));
+  const rawUrl = raw.url || raw.audioUrl || raw.audioFileUrl || raw.videoUrl || raw.embedUrl || raw.externalUrl || "";
+  const isVideo = raw.mediaType === "video" || Boolean(raw.videoUrl) || isDirectVideoFile(rawUrl) || Boolean(extractYouTubeId(rawUrl));
+
+  let url = rawUrl;
+  if (!isVideo && (!url || url.includes("soundhelix.com"))) {
+    url = SAMPLE_AUDIO_FALLBACK;
+  }
 
   return {
     id: raw.id || `item-${Math.random().toString(36).substring(2, 9)}`,
@@ -489,6 +496,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
         }}
         onEnded={handleItemEnded}
+        onError={() => {
+          if (audioRef.current && audioRef.current.src !== SAMPLE_AUDIO_FALLBACK) {
+            audioRef.current.src = SAMPLE_AUDIO_FALLBACK;
+            audioRef.current.load();
+            audioRef.current.play().catch(() => {});
+          }
+        }}
       />
 
       {/* HTML5 Native Video Player for MP4 files */}

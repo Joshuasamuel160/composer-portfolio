@@ -198,8 +198,8 @@ export const GlobalAudioPlayer: React.FC = () => {
 
       {/* PERSISTENT BOTTOM MINI-PLAYER BAR */}
       <div className="fixed bottom-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:max-w-4xl z-50 bg-zinc-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-3.5 shadow-2xl transition-all duration-300">
-        {/* REEL MODE BADGE STRIP */}
-        {isReelMode && (
+        {/* REEL / COVER FLOW CONTROLLER BADGE STRIP */}
+        {isReelMode ? (
           <div className="flex items-center justify-between px-2 pb-2 mb-2 border-b border-amber-500/20 text-[10px] font-mono text-amber-400">
             <span className="flex items-center gap-1.5 uppercase tracking-widest font-semibold">
               <Sparkles size={12} className="animate-spin" />
@@ -213,7 +213,17 @@ export const GlobalAudioPlayer: React.FC = () => {
               EXIT REEL
             </button>
           </div>
-        )}
+        ) : pathname === "/" ? (
+          <div className="flex items-center justify-between px-2 pb-1.5 mb-2 border-b border-amber-500/20 text-[9px] font-mono text-amber-400/90 tracking-widest uppercase font-bold">
+            <span className="flex items-center gap-1.5">
+              <Sparkles size={11} className="text-amber-400" />
+              COVER FLOW MASTER CONTROLLER
+            </span>
+            <span className="text-zinc-500 text-[9px]">
+              NAVIGATES & CONTROLS STAGE MEDIA
+            </span>
+          </div>
+        ) : null}
 
         <div className="flex items-center justify-between gap-4">
           {/* Left: Thumbnail, Titles & Category Badge */}
@@ -379,8 +389,8 @@ export const GlobalAudioPlayer: React.FC = () => {
               </div>
             )}
 
-            {/* Video PiP Window Toggle */}
-            {isVideo && (
+            {/* Video PiP Window Toggle (Off-home pages only) */}
+            {isVideo && pathname !== "/" && (
               <button
                 onClick={togglePip}
                 className="p-2 rounded-lg text-zinc-400 hover:text-amber-400 hover:bg-zinc-900 transition-colors"
@@ -399,14 +409,16 @@ export const GlobalAudioPlayer: React.FC = () => {
               {volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
             </button>
 
-            {/* Close Player */}
-            <button
-              onClick={closePlayer}
-              className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
-              aria-label="Close player"
-            >
-              <X size={16} />
-            </button>
+            {/* Close Player (Only on non-Home pages, since Home Cover Flow uses player as transport bar) */}
+            {pathname !== "/" && (
+              <button
+                onClick={closePlayer}
+                className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
+                aria-label="Close player"
+              >
+                <X size={16} />
+              </button>
+            )}
           </div>
         </div>
       </div>
