@@ -3,10 +3,18 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useAudio, PlaylistItem } from "@/lib/context/AudioContext";
 import { PortfolioItem, getAllPortfolioItems } from "@/lib/sanity/fetch";
-import { Play, Pause, ChevronLeft, ChevronRight, Sparkles, Film, Music, Tv, Layers } from "lucide-react";
+import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
+import { Play, Pause, ChevronLeft, ChevronRight, Sparkles, Film, Music, Tv, Layers, Volume2 } from "lucide-react";
 
 interface CoverFlowProps {
   items?: PortfolioItem[];
+}
+
+function formatTime(seconds: number): string {
+  if (isNaN(seconds) || seconds === 0) return "0:00";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
 }
 
 export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => {
@@ -19,7 +27,18 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
 
-  const { currentTrack, isPlaying, playMedia, startReel } = useAudio();
+  const {
+    currentTrack,
+    isPlaying,
+    currentTime,
+    duration,
+    videoRef,
+    playMedia,
+    startReel,
+    togglePlay,
+    playNext,
+    seek,
+  } = useAudio();
 
   // If initialItems empty, fallback to client-side fetch or default items
   useEffect(() => {
@@ -104,7 +123,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: x * 15, y: -y * 15 });
+    setTilt({ x: x * 12, y: -y * 12 });
   };
 
   const handleMouseLeave = () => {
@@ -113,6 +132,12 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
   const handlePlayCurrentItem = () => {
     if (!activeItem) return;
+
+    if (isThisPlaying) {
+      togglePlay();
+      return;
+    }
+
     const queueList: PlaylistItem[] = filteredItems.map((it) => ({
       id: it.id,
       title: it.title,
@@ -165,7 +190,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto py-8 space-y-8 select-none">
+    <div className="w-full max-w-7xl mx-auto py-10 space-y-8 select-none">
       {/* Header & Category Tabs */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/10 pb-6 px-4">
         <div>
@@ -192,7 +217,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2 rounded-full text-xs font-mono tracking-wider uppercase transition-all duration-300 flex items-center gap-1.5 flex-shrink-0 ${
+                className={`px-4 py-2.5 rounded-full text-xs font-mono tracking-wider uppercase transition-all duration-300 flex items-center gap-1.5 flex-shrink-0 ${
                   isActive
                     ? "bg-amber-500 text-zinc-950 font-semibold shadow-lg shadow-amber-500/20 scale-105"
                     : "bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/5"
@@ -206,24 +231,24 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
         </div>
       </div>
 
-      {/* 3D Cover Flow Stage Viewport */}
+      {/* 3D Cover Flow Stage Viewport - EXPANDED HEIGHT TO PREVENT TOP CLIPPING */}
       <div
         ref={containerRef}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="relative h-72 sm:h-96 md:h-[420px] w-full flex items-center justify-center overflow-hidden py-6"
+        className="relative h-[480px] sm:h-[580px] md:h-[660px] w-full flex items-center justify-center overflow-visible py-12"
         style={{
-          perspective: "1200px",
-          perspectiveOrigin: "50% 45%",
+          perspective: "1300px",
+          perspectiveOrigin: "50% 48%",
         }}
       >
         {/* Ambient Stage Lighting Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[480px] bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Navigation Arrow Controls */}
         <button
           onClick={handlePrev}
-          className="absolute left-3 sm:left-6 z-50 w-12 h-12 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 flex items-center justify-center backdrop-blur-md shadow-2xl transition-transform hover:scale-110 active:scale-95"
+          className="absolute left-2 sm:left-6 z-50 w-12 h-12 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 flex items-center justify-center backdrop-blur-md shadow-2xl transition-transform hover:scale-110 active:scale-95"
           aria-label="Previous Project"
         >
           <ChevronLeft size={24} />
@@ -231,14 +256,14 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
         <button
           onClick={handleNext}
-          className="absolute right-3 sm:right-6 z-50 w-12 h-12 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 flex items-center justify-center backdrop-blur-md shadow-2xl transition-transform hover:scale-110 active:scale-95"
+          className="absolute right-2 sm:right-6 z-50 w-12 h-12 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 flex items-center justify-center backdrop-blur-md shadow-2xl transition-transform hover:scale-110 active:scale-95"
           aria-label="Next Project"
         >
           <ChevronRight size={24} />
         </button>
 
         {/* 3D Curved Cards Track */}
-        <div className="relative w-full h-full flex items-center justify-center">
+        <div className="relative w-full h-full flex items-center justify-center overflow-visible">
           {filteredItems.map((item, index) => {
             const offset = index - activeIndex;
             const absOffset = Math.abs(offset);
@@ -247,23 +272,25 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
             if (absOffset > 4) return null;
 
             const isCurrentActive = offset === 0;
+            const isVideo = item.mediaType === "video";
+            const isDirectVideo = isVideo && isDirectVideoFile(item.url);
 
             // Organic smooth perspective calculations
             const rotateY = isCurrentActive
               ? tilt.x
-              : Math.sign(offset) * -Math.pow(absOffset, 0.7) * 32;
+              : Math.sign(offset) * -Math.pow(absOffset, 0.7) * 30;
 
             const rotateX = isCurrentActive ? tilt.y : 0;
 
-            const spacing = typeof window !== "undefined" && window.innerWidth < 640 ? 120 : 175;
+            const spacing = typeof window !== "undefined" && window.innerWidth < 640 ? 130 : 185;
             const translateX = isCurrentActive
               ? 0
-              : offset * spacing + Math.sign(offset) * 40;
+              : offset * spacing + Math.sign(offset) * 45;
 
-            const translateZ = isCurrentActive ? 140 : -Math.pow(absOffset, 1.25) * 95;
-            const scale = isCurrentActive ? 1.05 : Math.max(0.68, 1 - absOffset * 0.12);
-            const opacity = isCurrentActive ? 1 : Math.max(0.3, 1 - absOffset * 0.22);
-            const blur = isCurrentActive ? 0 : Math.min(5, Math.pow(absOffset, 1.1) * 1.3);
+            const translateZ = isCurrentActive ? 150 : -Math.pow(absOffset, 1.2) * 90;
+            const scale = isCurrentActive ? 1.06 : Math.max(0.68, 1 - absOffset * 0.12);
+            const opacity = isCurrentActive ? 1 : Math.max(0.35, 1 - absOffset * 0.2);
+            const blur = isCurrentActive ? 0 : Math.min(5, Math.pow(absOffset, 1.1) * 1.2);
             const zIndex = 50 - absOffset;
 
             return (
@@ -272,7 +299,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                 onClick={() => setActiveIndex(index)}
                 onMouseMove={isCurrentActive ? handleMouseMove : undefined}
                 onMouseLeave={isCurrentActive ? handleMouseLeave : undefined}
-                className="absolute top-1/2 left-1/2 -mt-28 sm:-mt-36 md:-mt-44 -ml-24 sm:-ml-32 md:-ml-40 w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 transition-all duration-500 ease-out cursor-pointer group"
+                className="absolute top-1/2 left-1/2 -mt-32 sm:-mt-44 md:-mt-52 -ml-28 sm:-ml-36 md:-ml-48 w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96 transition-all duration-500 ease-out cursor-pointer group"
                 style={{
                   transform: `translate3d(${translateX}px, -50%, ${translateZ}px) rotateY(${rotateY}deg) rotateX(${rotateX}deg) scale(${scale})`,
                   zIndex: zIndex,
@@ -283,46 +310,129 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
               >
                 {/* Vinyl / Poster Container */}
                 <div
-                  className={`relative w-full h-full rounded-2xl overflow-hidden bg-zinc-900 border transition-all duration-300 shadow-2xl ${
+                  className={`relative w-full h-full rounded-2xl overflow-hidden bg-zinc-950 border transition-all duration-300 shadow-2xl ${
                     isCurrentActive
                       ? "border-amber-500 ring-4 ring-amber-500/25 shadow-2xl shadow-amber-500/30"
                       : "border-white/10 group-hover:border-white/30"
                   }`}
                 >
-                  <img
-                    src={item.coverUrl}
-                    alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-
-                  {/* Gradient Lighting & Vignette Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent opacity-60" />
-
-                  {/* Category Badge on Cover */}
-                  <div className="absolute top-3 left-3 z-10">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest backdrop-blur-md border ${
-                        item.category === "Screen"
-                          ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
-                          : item.category === "Song"
-                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                          : "bg-purple-500/20 text-purple-300 border-purple-500/30"
-                      }`}
-                    >
-                      {item.category}
-                    </span>
-                  </div>
-
-                  {/* Equalizer Motion Indicator on Active Item */}
-                  {isCurrentActive && isThisPlaying && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
-                      <div className="flex items-end space-x-1.5 h-9 p-3 rounded-2xl bg-zinc-950/80 backdrop-blur-md border border-amber-500/50 shadow-xl">
-                        <span className="w-1.5 bg-amber-400 animate-pulse-bar-1" />
-                        <span className="w-1.5 bg-amber-400 animate-pulse-bar-2" />
-                        <span className="w-1.5 bg-amber-400 animate-pulse-bar-3" />
-                        <span className="w-1.5 bg-amber-400 animate-pulse-bar-4" />
+                  {/* INLINE MEDIA PLAYBACK DIRECTLY INSIDE ACTIVE COVER FLOW CARD */}
+                  {isCurrentActive && isThisPlaying ? (
+                    isVideo ? (
+                      /* Video Plays Directly Inside Active Card */
+                      <div className="relative w-full h-full bg-black flex items-center justify-center z-30">
+                        {isDirectVideo ? (
+                          <video
+                            ref={videoRef}
+                            src={item.url}
+                            autoPlay
+                            playsInline
+                            controls
+                            onEnded={playNext}
+                            className="w-full h-full object-contain bg-black"
+                          />
+                        ) : (
+                          <iframe
+                            src={`${formatVideoEmbedUrl(item.url)}${item.url.includes("?") ? "&" : "?"}autoplay=1`}
+                            title={item.title}
+                            className="w-full h-full border-0 object-contain"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          />
+                        )}
                       </div>
-                    </div>
+                    ) : (
+                      /* Audio Song Waveform Spectrum Overlay Directly Over Active Card */
+                      <div className="relative w-full h-full flex flex-col justify-between p-5 bg-zinc-950/90 border border-amber-500/50 rounded-2xl z-30 overflow-hidden shadow-2xl backdrop-blur-md">
+                        {/* Background Artwork Blurred */}
+                        <img
+                          src={item.coverUrl}
+                          alt=""
+                          className="absolute inset-0 w-full h-full object-cover opacity-25 filter blur-sm pointer-events-none"
+                        />
+
+                        {/* Top Audio Playing Status */}
+                        <div className="relative z-10 flex items-center justify-between">
+                          <span className="px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest bg-amber-500 text-zinc-950 font-bold flex items-center gap-1.5 shadow-lg">
+                            <Volume2 size={12} /> PLAYING AUDIO
+                          </span>
+                          <span className="text-xs font-mono text-amber-300 font-medium">
+                            {formatTime(currentTime)} / {formatTime(duration)}
+                          </span>
+                        </div>
+
+                        {/* Center Animated 20-Bar Waveform Equalizer */}
+                        <div className="relative z-10 flex items-center justify-center space-x-1.5 h-24 my-auto px-2">
+                          {[35, 70, 50, 85, 60, 100, 75, 40, 90, 65, 80, 55, 75, 95, 60, 45, 85, 50, 75, 40].map((h, i) => (
+                            <span
+                              key={i}
+                              className="w-1.5 bg-gradient-to-t from-amber-600 via-amber-400 to-amber-300 rounded-full transition-all duration-300 shadow-md shadow-amber-500/30"
+                              style={{
+                                height: `${Math.max(15, (h * (0.45 + (i % 4) * 0.15)))}%`,
+                                animation: `pulseBar 0.75s ease-in-out infinite alternate`,
+                                animationDelay: `${i * 0.04}s`,
+                              }}
+                            />
+                          ))}
+                        </div>
+
+                        {/* Bottom Track Meta & Interactive Waveform Progress Bar */}
+                        <div className="relative z-10 space-y-2">
+                          <p className="text-xs font-mono text-zinc-100 font-semibold uppercase tracking-wider truncate">
+                            {item.title}
+                          </p>
+                          <div
+                            className="w-full bg-zinc-800/80 h-2 rounded-full overflow-hidden cursor-pointer border border-white/10"
+                            onClick={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const clickX = e.clientX - rect.left;
+                              const pct = clickX / rect.width;
+                              if (duration) seek(pct * duration);
+                            }}
+                          >
+                            <div
+                              className="bg-amber-500 h-full rounded-full transition-all duration-100 shadow-md shadow-amber-500/50"
+                              style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    /* Default Cover Artwork Display */
+                    <>
+                      <img
+                        src={item.coverUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+
+                      {/* Vignette Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent opacity-60" />
+
+                      {/* Category Badge */}
+                      <div className="absolute top-3 left-3 z-10">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest backdrop-blur-md border ${
+                            item.category === "Screen"
+                              ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                              : item.category === "Song"
+                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                              : "bg-purple-500/20 text-purple-300 border-purple-500/30"
+                          }`}
+                        >
+                          {item.category}
+                        </span>
+                      </div>
+
+                      {/* Play Button Overlay on Hover for Center Active Card */}
+                      {isCurrentActive && (
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px]">
+                          <div className="w-16 h-16 rounded-full bg-amber-500 text-zinc-950 flex items-center justify-center shadow-2xl transition-transform hover:scale-110">
+                            <Play size={24} fill="currentColor" className="ml-1" />
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -378,7 +488,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
           {/* Action Launchers */}
           <div className="flex flex-wrap items-center gap-3 self-stretch md:self-center justify-end flex-shrink-0">
-            {/* Play Current Selected Item */}
+            {/* Play Current Selected Item directly inside Cover Flow */}
             <button
               onClick={handlePlayCurrentItem}
               className="px-6 py-3 rounded-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold text-xs uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-amber-500/20 transition-all hover:scale-105"

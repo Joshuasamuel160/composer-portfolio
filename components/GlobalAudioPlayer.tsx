@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAudio } from "@/lib/context/AudioContext";
 import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
 import {
@@ -29,6 +30,7 @@ function formatTime(seconds: number): string {
 }
 
 export const GlobalAudioPlayer: React.FC = () => {
+  const pathname = usePathname();
   const {
     currentItem,
     isPlaying,
@@ -135,10 +137,13 @@ export const GlobalAudioPlayer: React.FC = () => {
   const embedUrl = isVideo ? formatVideoEmbedUrl(currentItem.url) : "";
   const isDirectVideo = isVideo && isDirectVideoFile(currentItem.url);
 
+  // Hide corner floating PiP window on home page (`/`) since video plays directly inside Cover Flow card stage
+  const showFloatingPip = isVideo && !isPipMinimized && pathname !== "/";
+
   return (
     <>
       {/* FLOATING PICTURE-IN-PICTURE (PiP) VIDEO PLAYER WINDOW */}
-      {isVideo && !isPipMinimized && (
+      {showFloatingPip && (
         <div className="fixed bottom-24 right-4 sm:right-6 z-50 w-72 sm:w-96 aspect-video bg-zinc-950 border border-white/20 rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 group">
           {/* PiP Header Bar */}
           <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-900/90 border-b border-white/10 text-xs">
