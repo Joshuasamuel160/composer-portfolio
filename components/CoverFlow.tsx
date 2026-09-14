@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAudio, PlaylistItem } from "@/lib/context/AudioContext";
 import { PortfolioItem, getAllPortfolioItems } from "@/lib/sanity/fetch";
 import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
-import { Play, Pause, ChevronLeft, ChevronRight, Sparkles, Film, Music, Tv, Layers, Volume2 } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, Sparkles, Volume2 } from "lucide-react";
 
 interface CoverFlowProps {
   items?: PortfolioItem[];
@@ -19,7 +19,6 @@ function formatTime(seconds: number): string {
 
 export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => {
   const [allItems, setAllItems] = useState<PortfolioItem[]>(initialItems || []);
-  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [activeIndex, setActiveIndex] = useState(0);
 
   // Mouse Parallax Tilt state for active card
@@ -40,7 +39,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     seek,
   } = useAudio();
 
-  // If initialItems empty, fallback to client-side fetch or default items
+  // Fallback client-side fetch if initialItems empty
   useEffect(() => {
     if (!initialItems || initialItems.length === 0) {
       getAllPortfolioItems().then((res) => {
@@ -53,24 +52,30 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     }
   }, [initialItems]);
 
-  // Filter items by category tab
-  const filteredItems = allItems.filter((item) => {
-    if (selectedCategory === "ALL") return true;
-    if (selectedCategory === "SCREEN") return item.category === "Screen";
-    if (selectedCategory === "SONGS") return item.category === "Song";
-    if (selectedCategory === "ADS") return item.category === "Ad";
-    return true;
-  });
+  const items = allItems;
+  const N = items.length;
 
-  // Reset activeIndex when category tab changes
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [selectedCategory]);
+  const activeItem = items[activeIndex] || items[0];
 
-  const activeItem = filteredItems[activeIndex] || filteredItems[0];
-  const isThisPlaying = currentTrack?.id === activeItem?.id && isPlaying;
+  // Helper to check if current track matches active item
+  const isThisPlaying =
+    Boolean(currentTrack) &&
+    Boolean(activeItem) &&
+    (currentTrack?.id === activeItem?.id || currentTrack?.title === activeItem?.title) &&
+    isPlaying;
 
-  // Handle Keyboard Arrow Key Navigation
+  // Circular Infinite Navigation Handlers
+  const handlePrev = () => {
+    if (N === 0) return;
+    setActiveIndex((prev) => (prev - 1 + N) % N);
+  };
+
+  const handleNext = () => {
+    if (N === 0) return;
+    setActiveIndex((prev) => (prev + 1) % N);
+  };
+
+  // Keyboard Arrow Key Navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -82,24 +87,16 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        setActiveIndex((prev) => (prev > 0 ? prev - 1 : filteredItems.length - 1));
+        handlePrev();
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        setActiveIndex((prev) => (prev < filteredItems.length - 1 ? prev + 1 : 0));
+        handleNext();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [filteredItems.length]);
-
-  const handlePrev = () => {
-    setActiveIndex((prev) => (prev > 0 ? prev - 1 : filteredItems.length - 1));
-  };
-
-  const handleNext = () => {
-    setActiveIndex((prev) => (prev < filteredItems.length - 1 ? prev + 1 : 0));
-  };
+  }, [N]);
 
   // Touch Swipe Handlers for mobile & tablet
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -138,7 +135,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
       return;
     }
 
-    const queueList: PlaylistItem[] = filteredItems.map((it) => ({
+    const queueList: PlaylistItem[] = items.map((it) => ({
       id: it.id,
       title: it.title,
       artist: it.artist,
@@ -169,8 +166,8 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
   };
 
   const handleStartFullReel = () => {
-    if (filteredItems.length === 0) return;
-    const queueList: PlaylistItem[] = filteredItems.map((it) => ({
+    if (items.length === 0) return;
+    const queueList: PlaylistItem[] = items.map((it) => ({
       id: `reel-${it.id}`,
       title: it.title,
       artist: it.artist,
@@ -185,53 +182,13 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     startReel("FULL", queueList);
   };
 
-  if (!filteredItems || filteredItems.length === 0) {
+  if (!items || items.length === 0) {
     return null;
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto py-10 space-y-8 select-none">
-      {/* Header & Category Tabs */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/10 pb-6 px-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-amber-500 uppercase tracking-widest">
-            <Sparkles size={14} />
-            <span>DISCOGRAPHY & PROJECT SHOWCASE</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-serif font-light text-zinc-100 uppercase tracking-wide mt-1">
-            COVER FLOW
-          </h2>
-        </div>
-
-        {/* Category Filter Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 scrollbar-none">
-          {[
-            { id: "ALL", label: "ALL WORKS", icon: Layers },
-            { id: "SCREEN", label: "SCREEN & TV", icon: Film },
-            { id: "SONGS", label: "DISCOGRAPHY", icon: Music },
-            { id: "ADS", label: "ADS & CAMPAIGNS", icon: Tv },
-          ].map((cat) => {
-            const Icon = cat.icon;
-            const isActive = selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2.5 rounded-full text-xs font-mono tracking-wider uppercase transition-all duration-300 flex items-center gap-1.5 flex-shrink-0 ${
-                  isActive
-                    ? "bg-amber-500 text-zinc-950 font-semibold shadow-lg shadow-amber-500/20 scale-105"
-                    : "bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-white/5"
-                }`}
-              >
-                <Icon size={13} />
-                <span>{cat.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 3D Cover Flow Stage Viewport - EXPANDED HEIGHT TO PREVENT TOP CLIPPING */}
+    <div className="w-full max-w-7xl mx-auto py-4 space-y-6 select-none">
+      {/* 3D Infinite Looping Cover Flow Stage Viewport */}
       <div
         ref={containerRef}
         onTouchStart={handleTouchStart}
@@ -243,7 +200,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
         }}
       >
         {/* Ambient Stage Lighting Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[480px] h-[480px] bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Navigation Arrow Controls */}
         <button
@@ -262,10 +219,16 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
           <ChevronRight size={24} />
         </button>
 
-        {/* 3D Curved Cards Track */}
+        {/* Infinite Looping 3D Curved Cards Track */}
         <div className="relative w-full h-full flex items-center justify-center overflow-visible">
-          {filteredItems.map((item, index) => {
-            const offset = index - activeIndex;
+          {items.map((item, index) => {
+            // Circular Shortest Distance Calculation for Infinite Looping
+            let offset = index - activeIndex;
+            if (N > 0) {
+              if (offset > N / 2) offset -= N;
+              if (offset < -N / 2) offset += N;
+            }
+
             const absOffset = Math.abs(offset);
 
             // Hide cards beyond 4 steps distance
@@ -296,7 +259,11 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
             return (
               <div
                 key={item.id}
-                onClick={() => setActiveIndex(index)}
+                onClick={() => {
+                  if (!isCurrentActive) {
+                    setActiveIndex(index);
+                  }
+                }}
                 onMouseMove={isCurrentActive ? handleMouseMove : undefined}
                 onMouseLeave={isCurrentActive ? handleMouseLeave : undefined}
                 className="absolute top-1/2 left-1/2 -mt-32 sm:-mt-44 md:-mt-52 -ml-28 sm:-ml-36 md:-ml-48 w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96 transition-all duration-500 ease-out cursor-pointer group"
@@ -424,9 +391,12 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                         </span>
                       </div>
 
-                      {/* Play Button Overlay on Hover for Center Active Card */}
+                      {/* Play Button Overlay on Hover or Click for Center Active Card */}
                       {isCurrentActive && (
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px]">
+                        <div
+                          onClick={handlePlayCurrentItem}
+                          className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px] cursor-pointer z-20"
+                        >
                           <div className="w-16 h-16 rounded-full bg-amber-500 text-zinc-950 flex items-center justify-center shadow-2xl transition-transform hover:scale-110">
                             <Play size={24} fill="currentColor" className="ml-1" />
                           </div>
@@ -518,7 +488,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
       {/* Stage Dots Scrubber Indicator */}
       <div className="flex items-center justify-center gap-2 pt-1">
-        {filteredItems.map((it, idx) => (
+        {items.map((it, idx) => (
           <button
             key={it.id}
             onClick={() => setActiveIndex(idx)}
