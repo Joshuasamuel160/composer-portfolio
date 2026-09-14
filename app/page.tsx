@@ -1,9 +1,12 @@
-import { getBio } from "@/lib/sanity/fetch";
+import { getBio, getAllPortfolioItems } from "@/lib/sanity/fetch";
 import { Hero } from "@/components/Hero";
 import { CoverFlow } from "@/components/CoverFlow";
 
 export default async function HomePage() {
-  const bio = await getBio();
+  const [bio, portfolioItems] = await Promise.all([
+    getBio(),
+    getAllPortfolioItems(),
+  ]);
 
   return (
     <div className="space-y-12 pb-16">
@@ -11,7 +14,7 @@ export default async function HomePage() {
       <Hero name={bio.name} tagline={bio.tagline} />
 
       {/* 3D Discography Cover Flow Showcase & PLAY FULL REEL Feature */}
-      <CoverFlow />
+      <CoverFlow items={portfolioItems} />
     </div>
   );
 }

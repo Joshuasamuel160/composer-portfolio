@@ -488,3 +488,82 @@ export async function getBio(): Promise<BioData> {
     return mockBio;
   }
 }
+
+export interface PortfolioItem {
+  id: string;
+  title: string;
+  artist: string;
+  role: string;
+  category: "Screen" | "Song" | "Ad";
+  coverUrl: string;
+  year?: string;
+  description?: string;
+  mediaType: "video" | "audio";
+  url: string;
+  scoreCues?: Array<{ id: string; title: string; duration: string; audioUrl: string }>;
+}
+
+export async function getAllPortfolioItems(): Promise<PortfolioItem[]> {
+  try {
+    const [screenProjects, songs, ads] = await Promise.all([
+      getScreenProjects(),
+      getSongs(),
+      getAds(),
+    ]);
+
+    const screenItems: PortfolioItem[] = (screenProjects || []).map((sp) => ({
+      id: sp.id,
+      title: sp.title,
+      artist: sp.productionCompany || sp.director || "Joshua Samuel",
+      role: sp.role,
+      category: "Screen",
+      coverUrl: sp.posterUrl,
+      year: sp.year,
+      description: sp.description,
+      mediaType: "video",
+      url: sp.videoUrl,
+      scoreCues: sp.scoreCues,
+    }));
+
+    const songItems: PortfolioItem[] = (songs || []).map((s) => ({
+      id: s.id,
+      title: s.title,
+      artist: s.artistName,
+      role: s.role,
+      category: "Song",
+      coverUrl: s.coverUrl,
+      year: s.releaseYear,
+      description: `Original record production & composition featuring ${s.artistName}.`,
+      mediaType: "audio",
+      url: s.audioUrl,
+    }));
+
+    const adItems: PortfolioItem[] = (ads || []).map((ad) => ({
+      id: ad.id,
+      title: ad.brandName,
+      artist: "Commercial Campaign",
+      role: "Original Music & Sonic Branding",
+      category: "Ad",
+      coverUrl: ad.thumbnailUrl,
+      description: ad.description,
+      mediaType: "video",
+      url: ad.videoUrl,
+    }));
+
+    // Interleave for rich variety in Cover Flow
+    const combined: PortfolioItem[] = [];
+    const maxLen = Math.max(screenItems.length, songItems.length, adItems.length);
+    for (let i = 0; i < maxLen; i++) {
+      if (screenItems[i]) combined.push(screenItems[i]);
+      if (songItems[i]) combined.push(songItems[i]);
+      if (adItems[i]) combined.push(adItems[i]);
+    }
+
+    if (combined.length > 0) return combined;
+
+    return [];
+  } catch (err) {
+    console.error("Error fetching all portfolio items:", err);
+    return [];
+  }
+}
