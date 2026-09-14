@@ -312,12 +312,14 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (videoRef.current) {
           videoRef.current.src = item.url;
           videoRef.current.volume = volume;
+          videoRef.current.load();
           videoRef.current.play().catch(() => {});
         }
       } else {
         if (audioRef.current) {
           audioRef.current.src = item.url;
           audioRef.current.volume = volume;
+          audioRef.current.load();
           audioRef.current.play().catch(() => {});
         }
       }

@@ -67,21 +67,84 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
   const isThisPlaying =
     Boolean(currentTrack) &&
     Boolean(activeItem) &&
-    (currentTrack?.id === activeItem?.id || currentTrack?.title === activeItem?.title) &&
+    (currentTrack?.id === activeItem?.id || currentTrack?.title?.toLowerCase() === activeItem?.title?.toLowerCase()) &&
     isPlaying;
 
-  // Infinite Circular Navigation Handlers
+  // DIRECTION 1: SYNC GLOBAL PLAYER -> COVER FLOW
+  // When global player changes track (e.g. Next/Prev button, queue, keyboard, onEnded),
+  // Cover Flow automatically slides directly to the matching cover item!
+  useEffect(() => {
+    if (!currentTrack || items.length === 0) return;
+    const matchIndex = items.findIndex(
+      (it) => it.id === currentTrack.id || it.title.toLowerCase() === currentTrack.title.toLowerCase()
+    );
+    if (matchIndex !== -1 && matchIndex !== activeIndex) {
+      setActiveIndex(matchIndex);
+    }
+  }, [currentTrack, items]);
+
+  // Helper to trigger media playback for a target item
+  const playItemMedia = useCallback(
+    (targetItem: PortfolioItem) => {
+      const queueList: PlaylistItem[] = items.map((it) => ({
+        id: it.id,
+        title: it.title,
+        artist: it.artist,
+        role: it.role,
+        mediaType: it.mediaType,
+        url: it.url,
+        posterUrl: it.coverUrl,
+        coverUrl: it.coverUrl,
+        year: it.year,
+        category: it.category,
+      }));
+
+      const targetPlaylistItem: PlaylistItem = {
+        id: targetItem.id,
+        title: targetItem.title,
+        artist: targetItem.artist,
+        role: targetItem.role,
+        mediaType: targetItem.mediaType,
+        url: targetItem.url,
+        posterUrl: targetItem.coverUrl,
+        coverUrl: targetItem.coverUrl,
+        year: targetItem.year,
+        category: targetItem.category,
+      };
+
+      playMedia(targetPlaylistItem, queueList);
+    },
+    [items, playMedia]
+  );
+
+  // DIRECTION 2: SYNC COVER FLOW -> GLOBAL PLAYER
+  // When user moves Cover Flow (Next, Prev, Click, Drag):
+  // If playback is currently active, seamlessly switch global playback to the newly centered cover!
+  const changeActiveIndex = useCallback(
+    (newIndex: number) => {
+      setActiveIndex(newIndex);
+      const targetItem = items[newIndex];
+      if (targetItem && isPlaying) {
+        playItemMedia(targetItem);
+      }
+    },
+    [items, isPlaying, playItemMedia]
+  );
+
+  // Circular Infinite Navigation Handlers
   const handlePrev = useCallback(() => {
     if (N === 0) return;
-    setActiveIndex((prev) => (prev - 1 + N) % N);
-  }, [N]);
+    const nextIdx = (activeIndex - 1 + N) % N;
+    changeActiveIndex(nextIdx);
+  }, [N, activeIndex, changeActiveIndex]);
 
   const handleNext = useCallback(() => {
     if (N === 0) return;
-    setActiveIndex((prev) => (prev + 1) % N);
-  }, [N]);
+    const nextIdx = (activeIndex + 1) % N;
+    changeActiveIndex(nextIdx);
+  }, [N, activeIndex, changeActiveIndex]);
 
-  // Keyboard Navigation
+  // Keyboard Arrow Key Navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -121,7 +184,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     touchStartX.current = null;
   };
 
-  // GSAP Ultra-Fluid 3D Animation for Card Motion
+  // GSAP Ultra-Fluid 3D Motion Physics Engine
   useGSAP(
     () => {
       if (!items || items.length === 0) return;
@@ -158,7 +221,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
           opacity: opacity,
           filter: blur > 0 ? `blur(${blur}px)` : "none",
           zIndex: zIndex,
-          duration: 0.65,
+          duration: 0.6,
           ease: "power3.out",
           overwrite: "auto",
         });
@@ -168,8 +231,8 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
       if (detailsRef.current) {
         gsap.fromTo(
           detailsRef.current,
-          { opacity: 0, y: 12 },
-          { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }
         );
       }
     },
@@ -184,33 +247,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
       return;
     }
 
-    const queueList: PlaylistItem[] = items.map((it) => ({
-      id: it.id,
-      title: it.title,
-      artist: it.artist,
-      role: it.role,
-      mediaType: it.mediaType,
-      url: it.url,
-      posterUrl: it.coverUrl,
-      coverUrl: it.coverUrl,
-      year: it.year,
-      category: it.category,
-    }));
-
-    const targetPlaylistItem: PlaylistItem = {
-      id: activeItem.id,
-      title: activeItem.title,
-      artist: activeItem.artist,
-      role: activeItem.role,
-      mediaType: activeItem.mediaType,
-      url: activeItem.url,
-      posterUrl: activeItem.coverUrl,
-      coverUrl: activeItem.coverUrl,
-      year: activeItem.year,
-      category: activeItem.category,
-    };
-
-    playMedia(targetPlaylistItem, queueList);
+    playItemMedia(activeItem);
   };
 
   const handleStartFullReel = () => {
@@ -288,7 +325,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                 }}
                 onClick={() => {
                   if (!isCurrentActive) {
-                    setActiveIndex(index);
+                    changeActiveIndex(index);
                   }
                 }}
                 className="absolute top-1/2 left-1/2 -mt-32 sm:-mt-44 md:-mt-52 -ml-28 sm:-ml-36 md:-ml-48 w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96 cursor-pointer group"
@@ -412,7 +449,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                         </span>
                       </div>
 
-                      {/* Play Button Overlay on Active Card */}
+                      {/* Play Button Overlay on Hover or Click for Center Active Card */}
                       {isCurrentActive && (
                         <div
                           onClick={handlePlayCurrentItem}
@@ -515,7 +552,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
         {items.map((it, idx) => (
           <button
             key={it.id}
-            onClick={() => setActiveIndex(idx)}
+            onClick={() => changeActiveIndex(idx)}
             className={`h-2 rounded-full transition-all duration-300 ${
               activeIndex === idx
                 ? "w-8 bg-amber-500 shadow-md shadow-amber-500/40"
