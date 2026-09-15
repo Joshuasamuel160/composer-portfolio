@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import { SfxToggle } from "@/components/SfxToggle";
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -37,27 +38,30 @@ export const Navbar: React.FC<NavbarProps> = ({
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`text-sm tracking-widest uppercase transition-all duration-300 relative py-1 ${
-                  isActive
-                    ? "text-amber-400 font-medium"
-                    : "text-zinc-400 hover:text-zinc-100"
-                }`}
-              >
-                {item.label}
-                {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-amber-500 rounded-full" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="hidden md:flex items-center space-x-6">
+          <nav className="flex items-center space-x-8">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`text-sm tracking-widest uppercase transition-all duration-300 relative py-1 ${
+                    isActive
+                      ? "text-amber-400 font-medium"
+                      : "text-zinc-400 hover:text-zinc-100"
+                  }`}
+                >
+                  {item.label}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-amber-500 rounded-full" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+          <SfxToggle />
+        </div>
 
         {/* Mobile Menu Button */}
         <button

@@ -281,7 +281,12 @@ export async function getSongs(): Promise<SongData[]> {
       standaloneSongs = songData.map((s: any, index: number) => {
         let audioSrc = s.audioFileUrl || s.audioUrl || s.embedUrl || "";
         if (!audioSrc || audioSrc.includes("soundhelix.com")) {
+          console.warn(
+            `[AudioFetchDiagnostic] Track "${s.title}" (ID: ${s._id || index}) is missing a direct resolved audio URL. Checked fields: audioFile.asset->url, audioUrl, embedUrl. Applying emergency sample fallback.`
+          );
           audioSrc = VERIFIED_AUDIO_SAMPLES[index % VERIFIED_AUDIO_SAMPLES.length];
+        } else {
+          console.info(`[AudioFetchSuccess] Track "${s.title}" resolved playable URL:`, audioSrc);
         }
         return {
           id: s._id || `s-${index}`,

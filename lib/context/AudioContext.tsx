@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useRef, useEffect } from "react";
+import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from "react";
 import { SongData, mockScreenProjects, mockSongs, mockAds, mockHeroReels } from "../mockData";
 import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
 
@@ -50,6 +50,7 @@ interface AudioContextType {
   setVolume: (vol: number) => void;
   togglePip: () => void;
   closePlayer: () => void;
+  getFrequencyData: () => Uint8Array;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -173,6 +174,54 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const ytPlayerRef = useRef<any>(null);
   const ytTimerRef = useRef<any>(null);
+
+  const webAudioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const freqDataArrayRef = useRef<Uint8Array | null>(null);
+
+  const initWebAudio = useCallback(() => {
+    if (typeof window === "undefined" || !audioRef.current) return;
+    try {
+      if (!webAudioCtxRef.current) {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.8;
+
+        if (audioRef.current) {
+          try {
+            const source = ctx.createMediaElementSource(audioRef.current);
+            source.connect(analyser);
+            analyser.connect(ctx.destination);
+            sourceNodeRef.current = source;
+          } catch (err) {
+            console.warn("[WebAudio] createMediaElementSource re-attachment warning:", err);
+          }
+        }
+
+        webAudioCtxRef.current = ctx;
+        analyserRef.current = analyser;
+        freqDataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
+      }
+
+      if (webAudioCtxRef.current && webAudioCtxRef.current.state === "suspended") {
+        webAudioCtxRef.current.resume().catch(() => {});
+      }
+    } catch (e) {
+      console.warn("[WebAudio] Init error:", e);
+    }
+  }, []);
+
+  const getFrequencyData = useCallback((): Uint8Array => {
+    if (analyserRef.current && freqDataArrayRef.current) {
+      analyserRef.current.getByteFrequencyData(freqDataArrayRef.current as any);
+      return freqDataArrayRef.current;
+    }
+    return new Uint8Array(128);
+  }, []);
 
   const ytId = currentItem ? extractYouTubeId(currentItem.url) : null;
   const isDirectVideo = currentItem?.mediaType === "video" && isDirectVideoFile(currentItem.url);
@@ -325,6 +374,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       } else {
         if (audioRef.current) {
+          initWebAudio();
           audioRef.current.src = item.url;
           audioRef.current.volume = volume;
           audioRef.current.load();
@@ -420,6 +470,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } else if (currentItem.mediaType === "video" && videoRef.current) {
         videoRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
       } else if (audioRef.current) {
+        initWebAudio();
         audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
       }
     }
@@ -502,6 +553,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setVolume,
         togglePip,
         closePlayer,
+        getFrequencyData,
       }}
     >
       {children}

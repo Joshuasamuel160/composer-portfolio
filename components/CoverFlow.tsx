@@ -4,7 +4,9 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useAudio, PlaylistItem } from "@/lib/context/AudioContext";
 import { PortfolioItem, getAllPortfolioItems } from "@/lib/sanity/fetch";
 import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
-import { Play, Pause, ChevronLeft, ChevronRight, Sparkles, Volume2 } from "lucide-react";
+import { TrailerModal } from "@/components/TrailerModal";
+import { playCardSwitchSFX, playButtonClickSFX } from "@/lib/utils/soundFX";
+import { Play, Pause, ChevronLeft, ChevronRight, Sparkles, Volume2, Maximize2 } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
@@ -26,11 +28,17 @@ function formatTime(seconds: number): string {
 export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => {
   const [allItems, setAllItems] = useState<PortfolioItem[]>(initialItems || []);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [dragDeltaX, setDragDeltaX] = useState(0);
+  const [selectedTrailer, setSelectedTrailer] = useState<PortfolioItem | null>(null);
+  const [realHeights, setRealHeights] = useState<number[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const detailsRef = useRef<HTMLDivElement>(null);
-  const touchStartX = useRef<number | null>(null);
+
+  const isPointerDownRef = useRef(false);
+  const startXRef = useRef(0);
+  const lastDxRef = useRef(0);
 
   const {
     currentTrack,
@@ -44,6 +52,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     togglePlay,
     playNext,
     seek,
+    getFrequencyData,
   } = useAudio();
 
   // Fallback client-side fetch if initialItems empty
@@ -90,9 +99,37 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     (currentTrack?.id === activeItem?.id || currentTrack?.title?.toLowerCase() === activeItem?.title?.toLowerCase()) &&
     isPlaying;
 
+  // Web Audio API Real-time Frequency Visualizer Frame Loop
+  useEffect(() => {
+    let animId: number;
+    const updateVisualizer = () => {
+      if (isThisPlaying && activeItem?.mediaType === "audio") {
+        const data = getFrequencyData();
+        let hasSignal = false;
+        const bars: number[] = [];
+        for (let i = 0; i < 20; i++) {
+          const sampleIndex = Math.floor((i / 20) * (data.length / 2));
+          const val = data[sampleIndex] || 0;
+          if (val > 0) hasSignal = true;
+          const pct = Math.max(12, Math.min(100, (val / 255) * 100));
+          bars.push(pct);
+        }
+        if (hasSignal) {
+          setRealHeights(bars);
+        } else {
+          setRealHeights([]);
+        }
+      } else {
+        setRealHeights([]);
+      }
+      animId = requestAnimationFrame(updateVisualizer);
+    };
+
+    updateVisualizer();
+    return () => cancelAnimationFrame(animId);
+  }, [isThisPlaying, activeItem, getFrequencyData]);
+
   // DIRECTION 1: SYNC GLOBAL PLAYER -> COVER FLOW
-  // When global player changes track (e.g. Next/Prev button, queue, keyboard, onEnded),
-  // Cover Flow automatically slides directly to the matching cover item!
   useEffect(() => {
     if (!currentTrack || items.length === 0) return;
     const matchIndex = items.findIndex(
@@ -171,11 +208,10 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
   );
 
   // DIRECTION 2: SYNC COVER FLOW -> GLOBAL PLAYER
-  // When user moves Cover Flow (Next, Prev, Click, Drag):
-  // Seamlessly update global player active item whether playing or paused!
   const changeActiveIndex = useCallback(
     (newIndex: number) => {
       setActiveIndex(newIndex);
+      playCardSwitchSFX();
       const targetItem = items[newIndex];
       if (!targetItem) return;
 
@@ -224,51 +260,66 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handlePrev, handleNext]);
 
-  // Touch Drag & Swipe Physics
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
+  // Continuous 1:1 Pointer & Touch Drag Physics
+  const handlePointerDown = (e: React.PointerEvent) => {
+    isPointerDownRef.current = true;
+    startXRef.current = e.clientX;
+    lastDxRef.current = 0;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const touchEndX = e.changedTouches[0].clientX;
-    const diff = touchStartX.current - touchEndX;
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isPointerDownRef.current) return;
+    const dx = e.clientX - startXRef.current;
+    lastDxRef.current = dx;
+    setDragDeltaX(dx);
+  };
 
-    if (Math.abs(diff) > 35) {
-      if (diff > 0) handleNext();
-      else handlePrev();
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!isPointerDownRef.current) return;
+    isPointerDownRef.current = false;
+    const dx = lastDxRef.current;
+    setDragDeltaX(0);
+
+    if (Math.abs(dx) > 15) {
+      const spacing = typeof window !== "undefined" && window.innerWidth < 640 ? 130 : 190;
+      const step = Math.round(-dx / spacing);
+      const clampedStep = step === 0 ? (dx < 0 ? 1 : -1) : step;
+      const nextIdx = (activeIndex + clampedStep + N) % N;
+      changeActiveIndex(nextIdx);
     }
-    touchStartX.current = null;
   };
 
-  // GSAP Ultra-Fluid 3D Motion Physics Engine
+  // GSAP Ultra-Fluid 3D Motion Physics Engine with 1:1 Drag Offset
   useGSAP(
     () => {
       if (!items || items.length === 0) return;
+
+      const spacing = typeof window !== "undefined" && window.innerWidth < 640 ? 130 : 190;
+      const fractionalDrag = dragDeltaX / spacing;
 
       items.forEach((_, index) => {
         const card = cardsRef.current[index];
         if (!card) return;
 
-        // Circular shortest distance
-        let offset = index - activeIndex;
+        // Circular shortest distance with continuous drag offset
+        let offset = index - (activeIndex - fractionalDrag);
         if (N > 0) {
           if (offset > N / 2) offset -= N;
           if (offset < -N / 2) offset += N;
         }
 
         const absOffset = Math.abs(offset);
-        const isCurrentActive = offset === 0;
+        const isCurrentActive = Math.abs(offset) < 0.5;
 
         // Perspective 3D math
-        const rotateY = isCurrentActive ? 0 : Math.sign(offset) * -Math.pow(absOffset, 0.72) * 32;
-        const spacing = typeof window !== "undefined" && window.innerWidth < 640 ? 130 : 190;
-        const translateX = isCurrentActive ? 0 : offset * spacing + Math.sign(offset) * 45;
-        const translateZ = isCurrentActive ? 150 : -Math.pow(absOffset, 1.25) * 95;
-        const scale = isCurrentActive ? 1.06 : Math.max(0.65, 1 - absOffset * 0.12);
-        const opacity = absOffset > 4 ? 0 : isCurrentActive ? 1 : Math.max(0.3, 1 - absOffset * 0.22);
-        const blur = isCurrentActive ? 0 : Math.min(6, Math.pow(absOffset, 1.1) * 1.3);
-        const zIndex = 50 - absOffset;
+        const rotateY = isCurrentActive ? offset * -20 : Math.sign(offset) * -Math.pow(absOffset, 0.72) * 32;
+        const translateX = offset * spacing + (isCurrentActive ? 0 : Math.sign(offset) * 45);
+        const translateZ = isCurrentActive ? 150 - absOffset * 90 : -Math.pow(absOffset, 1.25) * 95;
+        const scale = Math.max(0.65, 1.06 - absOffset * 0.12);
+        const opacity = absOffset > 4 ? 0 : Math.max(0.3, 1 - absOffset * 0.22);
+        const blur = Math.min(6, Math.pow(absOffset, 1.1) * 1.3);
+        const zIndex = 50 - Math.round(absOffset);
 
         gsap.to(card, {
           x: translateX,
@@ -278,8 +329,8 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
           opacity: opacity,
           filter: blur > 0 ? `blur(${blur}px)` : "none",
           zIndex: zIndex,
-          duration: 0.6,
-          ease: "power3.out",
+          duration: isPointerDownRef.current ? 0.08 : 0.6,
+          ease: isPointerDownRef.current ? "power1.out" : "power3.out",
           overwrite: "auto",
         });
       });
@@ -293,11 +344,12 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
         );
       }
     },
-    { dependencies: [activeIndex, items.length], scope: containerRef }
+    { dependencies: [activeIndex, dragDeltaX, items.length], scope: containerRef }
   );
 
   const handlePlayCurrentItem = () => {
     if (!activeItem) return;
+    playButtonClickSFX();
 
     if (isThisPlaying) {
       togglePlay();
@@ -309,6 +361,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
   const handleStartFullReel = () => {
     if (items.length === 0) return;
+    playButtonClickSFX();
     const queueList: PlaylistItem[] = items.map((it) => ({
       id: `reel-${it.id}`,
       title: it.title,
@@ -328,14 +381,28 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     return null;
   }
 
+  // Fallback CSS heights for Equalizer
+  const fallbackHeights = [35, 70, 50, 85, 60, 100, 75, 40, 90, 65, 80, 55, 75, 95, 60, 45, 85, 50, 75, 40];
+
   return (
     <div className="w-full max-w-7xl mx-auto py-2 space-y-6 select-none">
+      {/* Fullscreen Cinematic Trailer Modal */}
+      <TrailerModal
+        isOpen={Boolean(selectedTrailer)}
+        videoUrl={selectedTrailer?.url || ""}
+        title={selectedTrailer?.title || ""}
+        artist={selectedTrailer?.artist}
+        onClose={() => setSelectedTrailer(null)}
+      />
+
       {/* GSAP-Powered 3D Infinite Looping Cover Flow Stage */}
       <div
         ref={containerRef}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        className="relative h-[480px] sm:h-[580px] md:h-[660px] w-full flex items-center justify-center overflow-visible py-12"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        className="relative h-[480px] sm:h-[580px] md:h-[660px] w-full flex items-center justify-center overflow-visible py-12 touch-pan-y cursor-grab active:cursor-grabbing"
         style={{
           perspective: "1300px",
           perspectiveOrigin: "50% 48%",
@@ -346,7 +413,11 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
         {/* Navigation Arrow Controls */}
         <button
-          onClick={handlePrev}
+          onClick={(e) => {
+            e.stopPropagation();
+            playButtonClickSFX();
+            handlePrev();
+          }}
           className="absolute left-2 sm:left-6 z-50 w-12 h-12 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 flex items-center justify-center backdrop-blur-md shadow-2xl transition-transform hover:scale-110 active:scale-95"
           aria-label="Previous Project"
         >
@@ -354,7 +425,11 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
         </button>
 
         <button
-          onClick={handleNext}
+          onClick={(e) => {
+            e.stopPropagation();
+            playButtonClickSFX();
+            handleNext();
+          }}
           className="absolute right-2 sm:right-6 z-50 w-12 h-12 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 flex items-center justify-center backdrop-blur-md shadow-2xl transition-transform hover:scale-110 active:scale-95"
           aria-label="Next Project"
         >
@@ -421,6 +496,18 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           />
                         )}
+
+                        {/* Expand Fullscreen Trailer Button Overlay */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playButtonClickSFX();
+                            setSelectedTrailer(item);
+                          }}
+                          className="absolute bottom-3 right-3 z-40 px-3 py-1.5 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 text-[10px] font-mono tracking-widest uppercase flex items-center gap-1.5 backdrop-blur-md shadow-xl transition-all hover:scale-105"
+                        >
+                          <Maximize2 size={12} className="text-amber-400" /> EXPAND TRAILER ⤢
+                        </button>
                       </div>
                     ) : (
                       /* Audio Song Waveform Spectrum Overlay Directly Over Active Card */
@@ -442,16 +529,20 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                           </span>
                         </div>
 
-                        {/* Center Animated 20-Bar Waveform Equalizer */}
+                        {/* Live Web Audio API Frequency Spectrum Equalizer */}
                         <div className="relative z-10 flex items-center justify-center space-x-1.5 h-24 my-auto px-2">
-                          {[35, 70, 50, 85, 60, 100, 75, 40, 90, 65, 80, 55, 75, 95, 60, 45, 85, 50, 75, 40].map((h, i) => (
+                          {(realHeights.length > 0 ? realHeights : fallbackHeights).map((h, i) => (
                             <span
                               key={i}
-                              className="w-1.5 bg-gradient-to-t from-amber-600 via-amber-400 to-amber-300 rounded-full transition-all duration-300 shadow-md shadow-amber-500/30"
+                              className="w-1.5 bg-gradient-to-t from-amber-600 via-amber-400 to-amber-300 rounded-full transition-all duration-75 shadow-md shadow-amber-500/30"
                               style={{
-                                height: `${Math.max(15, h * (0.45 + (i % 4) * 0.15))}%`,
-                                animation: `pulseBar 0.75s ease-in-out infinite alternate`,
-                                animationDelay: `${i * 0.04}s`,
+                                height: `${h}%`,
+                                ...(realHeights.length === 0
+                                  ? {
+                                      animation: `pulseBar 0.75s ease-in-out infinite alternate`,
+                                      animationDelay: `${i * 0.04}s`,
+                                    }
+                                  : {}),
                               }}
                             />
                           ))}
@@ -492,7 +583,7 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                       <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent opacity-60" />
 
                       {/* Category Badge */}
-                      <div className="absolute top-3 left-3 z-10">
+                      <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
                         <span
                           className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest backdrop-blur-md border ${
                             item.category === "Screen"
@@ -505,6 +596,20 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                           {item.category}
                         </span>
                       </div>
+
+                      {/* Expand Fullscreen Trailer Button on Video Cards */}
+                      {isVideo && isCurrentActive && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playButtonClickSFX();
+                            setSelectedTrailer(item);
+                          }}
+                          className="absolute top-3 right-3 z-30 px-3 py-1.5 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 text-[10px] font-mono tracking-widest uppercase flex items-center gap-1.5 backdrop-blur-md shadow-xl transition-all hover:scale-105"
+                        >
+                          <Maximize2 size={12} className="text-amber-400" /> TRAILER ⤢
+                        </button>
+                      )}
 
                       {/* Play Button Overlay on Hover or Click for Center Active Card */}
                       {isCurrentActive && (
@@ -576,6 +681,19 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
           {/* Action Launchers */}
           <div className="flex flex-wrap items-center gap-3 self-stretch md:self-center justify-end flex-shrink-0">
+            {/* Expand Fullscreen Trailer Button for Video Cards */}
+            {activeItem.mediaType === "video" && (
+              <button
+                onClick={() => {
+                  playButtonClickSFX();
+                  setSelectedTrailer(activeItem);
+                }}
+                className="px-5 py-3 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-white/20 font-semibold text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg transition-all hover:scale-105"
+              >
+                <Maximize2 size={16} className="text-amber-400" /> EXPAND TRAILER ⤢
+              </button>
+            )}
+
             {/* Play Current Selected Item directly inside Cover Flow */}
             <button
               onClick={handlePlayCurrentItem}

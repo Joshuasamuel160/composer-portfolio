@@ -52,12 +52,13 @@ export const GlobalAudioPlayer: React.FC = () => {
     exitReel,
     isPipMinimized,
     togglePip,
+    getFrequencyData,
   } = useAudio();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [showUpNext, setShowUpNext] = useState(false);
 
-  // Real-time Canvas Frequency Visualizer Animation
+  // Real-time Canvas Frequency Visualizer Animation driven by Web Audio API
   useEffect(() => {
     let animationFrameId: number;
     const canvas = canvasRef.current;
@@ -70,13 +71,22 @@ export const GlobalAudioPlayer: React.FC = () => {
       const bars = 28;
       const barWidth = canvas.width / bars - 1.5;
       const now = Date.now();
+      const freqData = isPlaying ? getFrequencyData() : null;
 
       for (let i = 0; i < bars; i++) {
         let height = 3;
         if (isPlaying) {
-          const freq = Math.sin(now * 0.008 + i * 0.4) * 0.5 + 0.5;
-          const bass = Math.cos(now * 0.005 + i * 0.2) * 0.5 + 0.5;
-          height = Math.max(3, (freq * 0.65 + bass * 0.35) * (canvas.height - 2));
+          let val = 0;
+          if (freqData && freqData.length > 0) {
+            const sampleIdx = Math.floor((i / bars) * (freqData.length / 2));
+            val = freqData[sampleIdx] || 0;
+          }
+          if (val > 0) {
+            height = Math.max(3, (val / 255) * (canvas.height - 2));
+          } else {
+            const freq = Math.sin(now * 0.008 + i * 0.4) * 0.5 + 0.5;
+            height = Math.max(3, freq * (canvas.height - 2));
+          }
         }
 
         const x = i * (barWidth + 1.5);
@@ -97,7 +107,7 @@ export const GlobalAudioPlayer: React.FC = () => {
 
     render();
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isPlaying]);
+  }, [isPlaying, getFrequencyData]);
 
   // Keyboard Shortcuts: Space (Play/Pause), Left/Right Arrows (Seek 5s), M (Mute)
   useEffect(() => {
