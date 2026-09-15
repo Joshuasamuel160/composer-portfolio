@@ -378,13 +378,15 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           audioRef.current.src = item.url;
           audioRef.current.volume = volume;
           audioRef.current.load();
-          audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {
-            if (audioRef.current) {
-              audioRef.current.src = SAMPLE_AUDIO_FALLBACK;
-              audioRef.current.load();
-              audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
-            }
-          });
+          audioRef.current
+            .play()
+            .then(() => setIsPlaying(true))
+            .catch((err) => {
+              if (err.name !== "AbortError") {
+                console.warn("[AudioContext] Audio play error:", err);
+                setIsPlaying(false);
+              }
+            });
         }
       }
     }
@@ -455,15 +457,16 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!currentItem) return;
 
     if (isPlaying) {
-      if (ytId && ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === "function") {
+      if (audioRef.current) audioRef.current.pause();
+      if (videoRef.current) videoRef.current.pause();
+      if (ytPlayerRef.current && typeof ytPlayerRef.current.pauseVideo === "function") {
         ytPlayerRef.current.pauseVideo();
-      } else if (currentItem.mediaType === "video" && videoRef.current) {
-        videoRef.current.pause();
-      } else if (audioRef.current) {
-        audioRef.current.pause();
       }
       setIsPlaying(false);
     } else {
+      if (audioRef.current) audioRef.current.pause();
+      if (videoRef.current) videoRef.current.pause();
+
       if (ytId && ytPlayerRef.current && typeof ytPlayerRef.current.playVideo === "function") {
         ytPlayerRef.current.playVideo();
         setIsPlaying(true);
@@ -471,7 +474,14 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         videoRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
       } else if (audioRef.current) {
         initWebAudio();
-        audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+        audioRef.current
+          .play()
+          .then(() => setIsPlaying(true))
+          .catch((err) => {
+            if (err.name !== "AbortError") {
+              setIsPlaying(false);
+            }
+          });
       }
     }
   };
@@ -562,6 +572,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       <audio
         ref={audioRef}
         preload="auto"
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
         onTimeUpdate={() => {
           if (!ytId && currentItem?.mediaType !== "video" && audioRef.current) {
             setCurrentTime(audioRef.current.currentTime);
@@ -573,12 +585,9 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
         }}
         onEnded={handleItemEnded}
-        onError={() => {
-          if (audioRef.current && audioRef.current.src !== SAMPLE_AUDIO_FALLBACK) {
-            audioRef.current.src = SAMPLE_AUDIO_FALLBACK;
-            audioRef.current.load();
-            audioRef.current.play().catch(() => {});
-          }
+        onError={(e) => {
+          console.warn("[AudioContext] Native audio element error:", e);
+          setIsPlaying(false);
         }}
       />
 

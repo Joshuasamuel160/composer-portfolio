@@ -418,7 +418,13 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
             playButtonClickSFX();
             handlePrev();
           }}
-          className="absolute left-2 sm:left-6 z-50 w-12 h-12 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 flex items-center justify-center backdrop-blur-md shadow-2xl transition-transform hover:scale-110 active:scale-95"
+          onPointerDown={(e) => {
+            e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+          }}
+          className="absolute left-2 sm:left-6 z-50 w-12 h-12 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 flex items-center justify-center backdrop-blur-md shadow-2xl transition-transform hover:scale-110 active:scale-95 cursor-pointer"
           aria-label="Previous Project"
         >
           <ChevronLeft size={24} />
@@ -430,7 +436,13 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
             playButtonClickSFX();
             handleNext();
           }}
-          className="absolute right-2 sm:right-6 z-50 w-12 h-12 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 flex items-center justify-center backdrop-blur-md shadow-2xl transition-transform hover:scale-110 active:scale-95"
+          onPointerDown={(e) => {
+            e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+          }}
+          className="absolute right-2 sm:right-6 z-50 w-12 h-12 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 flex items-center justify-center backdrop-blur-md shadow-2xl transition-transform hover:scale-110 active:scale-95 cursor-pointer"
           aria-label="Next Project"
         >
           <ChevronRight size={24} />
@@ -504,6 +516,8 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                             playButtonClickSFX();
                             setSelectedTrailer(item);
                           }}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onTouchStart={(e) => e.stopPropagation()}
                           className="absolute bottom-3 right-3 z-40 px-3 py-1.5 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 text-[10px] font-mono tracking-widest uppercase flex items-center gap-1.5 backdrop-blur-md shadow-xl transition-all hover:scale-105"
                         >
                           <Maximize2 size={12} className="text-amber-400" /> EXPAND TRAILER ⤢
@@ -555,6 +569,8 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                           </p>
                           <div
                             className="w-full bg-zinc-800/80 h-2 rounded-full overflow-hidden cursor-pointer border border-white/10"
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
                             onClick={(e) => {
                               const rect = e.currentTarget.getBoundingClientRect();
                               const clickX = e.clientX - rect.left;
@@ -605,6 +621,8 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                             playButtonClickSFX();
                             setSelectedTrailer(item);
                           }}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onTouchStart={(e) => e.stopPropagation()}
                           className="absolute top-3 right-3 z-30 px-3 py-1.5 rounded-full bg-zinc-950/80 hover:bg-zinc-900 border border-white/20 text-zinc-200 text-[10px] font-mono tracking-widest uppercase flex items-center gap-1.5 backdrop-blur-md shadow-xl transition-all hover:scale-105"
                         >
                           <Maximize2 size={12} className="text-amber-400" /> TRAILER ⤢
@@ -614,6 +632,8 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                       {/* Play Button Overlay on Hover or Click for Center Active Card */}
                       {isCurrentActive && (
                         <div
+                          onPointerDown={(e) => e.stopPropagation()}
+                          onTouchStart={(e) => e.stopPropagation()}
                           onClick={handlePlayCurrentItem}
                           className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px] cursor-pointer z-20"
                         >
