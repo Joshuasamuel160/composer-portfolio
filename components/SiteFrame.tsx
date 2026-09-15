@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Navbar } from "./Navbar";
-import { GlobalAudioPlayer } from "./GlobalAudioPlayer";
 import { PageTransition } from "./PageTransition";
 import { VisualEditing } from "@sanity/visual-editing/react";
 
@@ -34,7 +33,6 @@ export const SiteFrame: React.FC<{ children: React.ReactNode }> = ({ children })
           <span>LAGOS • NIGERIA</span>
         </div>
       </footer>
-      <GlobalAudioPlayer />
       {/* Only render blue editing highlights inside Sanity Studio preview iframe */}
       {isInIframe && <VisualEditing portal={true} />}
     </>

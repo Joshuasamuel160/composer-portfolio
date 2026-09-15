@@ -5,7 +5,6 @@ import { useAudio, PlaylistItem } from "@/lib/context/AudioContext";
 import { PortfolioItem, getAllPortfolioItems } from "@/lib/sanity/fetch";
 import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
 import { TrailerModal } from "@/components/TrailerModal";
-import { playCardSwitchSFX, playButtonClickSFX } from "@/lib/utils/soundFX";
 import { Play, Pause, ChevronLeft, ChevronRight, Sparkles, Volume2, Maximize2 } from "lucide-react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -207,21 +206,15 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
     [items, selectMedia]
   );
 
-  // DIRECTION 2: SYNC COVER FLOW -> GLOBAL PLAYER
+  // Auto-play active cover media on slide navigation
   const changeActiveIndex = useCallback(
     (newIndex: number) => {
       setActiveIndex(newIndex);
-      playCardSwitchSFX();
       const targetItem = items[newIndex];
       if (!targetItem) return;
-
-      if (isPlaying) {
-        playItemMedia(targetItem);
-      } else {
-        selectItemMedia(targetItem);
-      }
+      playItemMedia(targetItem);
     },
-    [items, isPlaying, playItemMedia, selectItemMedia]
+    [items, playItemMedia]
   );
 
   // Circular Infinite Navigation Handlers
@@ -349,7 +342,6 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
   const handlePlayCurrentItem = () => {
     if (!activeItem) return;
-    playButtonClickSFX();
 
     if (isThisPlaying) {
       togglePlay();
@@ -361,7 +353,6 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
 
   const handleStartFullReel = () => {
     if (items.length === 0) return;
-    playButtonClickSFX();
     const queueList: PlaylistItem[] = items.map((it) => ({
       id: `reel-${it.id}`,
       title: it.title,
@@ -415,7 +406,6 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
         <button
           onClick={(e) => {
             e.stopPropagation();
-            playButtonClickSFX();
             handlePrev();
           }}
           onPointerDown={(e) => {
@@ -433,7 +423,6 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
         <button
           onClick={(e) => {
             e.stopPropagation();
-            playButtonClickSFX();
             handleNext();
           }}
           onPointerDown={(e) => {
@@ -513,7 +502,6 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            playButtonClickSFX();
                             setSelectedTrailer(item);
                           }}
                           onPointerDown={(e) => e.stopPropagation()}
@@ -618,7 +606,6 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            playButtonClickSFX();
                             setSelectedTrailer(item);
                           }}
                           onPointerDown={(e) => e.stopPropagation()}
@@ -705,7 +692,6 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
             {activeItem.mediaType === "video" && (
               <button
                 onClick={() => {
-                  playButtonClickSFX();
                   setSelectedTrailer(activeItem);
                 }}
                 className="px-5 py-3 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-white/20 font-semibold text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg transition-all hover:scale-105"

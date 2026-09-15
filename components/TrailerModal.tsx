@@ -4,7 +4,6 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import { formatVideoEmbedUrl, isDirectVideoFile } from "@/lib/utils/formatVideoUrl";
 import { useAudio } from "@/lib/context/AudioContext";
 import { Play, Pause, Volume2, VolumeX, X, Maximize, Minimize } from "lucide-react";
-import { playButtonClickSFX } from "@/lib/utils/soundFX";
 
 interface TrailerModalProps {
   isOpen: boolean;
@@ -68,7 +67,6 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
   }, [isOpen, isPlaying]);
 
   const togglePlay = () => {
-    playButtonClickSFX();
     if (modalVideoRef.current) {
       if (isPlaying) {
         modalVideoRef.current.pause();
@@ -82,7 +80,6 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
   };
 
   const toggleMute = () => {
-    playButtonClickSFX();
     if (modalVideoRef.current) {
       modalVideoRef.current.muted = !isMuted;
     }
@@ -98,7 +95,6 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
   };
 
   const toggleFullscreen = () => {
-    playButtonClickSFX();
     if (!modalContainerRef.current) return;
     if (!document.fullscreenElement) {
       modalContainerRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
@@ -140,7 +136,6 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
 
         <button
           onClick={() => {
-            playButtonClickSFX();
             onClose();
           }}
           className="w-10 h-10 rounded-full bg-zinc-900/90 border border-white/20 text-zinc-300 hover:text-white hover:bg-zinc-800 flex items-center justify-center transition-all hover:scale-110 shadow-2xl flex-shrink-0"
