@@ -27,10 +27,10 @@ export const SiteFrame: React.FC<{ children: React.ReactNode }> = ({ children })
       <main className="flex-grow pt-20">
         <PageTransition>{children}</PageTransition>
       </main>
-      <footer className="py-12 border-t border-white/5 text-center text-xs tracking-widest text-zinc-500 uppercase font-mono">
+      <footer className="py-8 border-t border-[#EDE8DE]/14 text-center text-xs tracking-widest text-[#8C8A80] uppercase font-mono">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <span>© {new Date().getFullYear()} JOSHUA SAMUEL. ALL RIGHTS RESERVED.</span>
-          <span>LAGOS • NIGERIA</span>
+          <span>LAGOS · NIGERIA</span>
         </div>
       </footer>
       {/* Only render blue editing highlights inside Sanity Studio preview iframe */}

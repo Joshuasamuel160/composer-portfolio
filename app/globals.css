@@ -1,26 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
-  --foreground: #f4f4f5;
-  --muted: #a1a1aa;
-  --muted-dark: #27272a;
-  --card: #121215;
-  --card-border: #1e1e24;
-  --accent: #d97706;
-  --accent-light: #f59e0b;
-  --accent-glow: rgba(217, 119, 6, 0.15);
+  --background: #0C0C0D;
+  --bg-secondary: #131313;
+  --foreground: #EDE8DE;
+  --text-dimmed: #C9C4B8;
+  --text-meta: #8C8A80;
+  --accent-brass: #B8863B;
+  --accent-brass-dim: #8A682F;
+  --accent-console: #3E5C57;
+  --hairline: rgba(237, 232, 222, 0.14);
+  --card: #131313;
+  --card-border: rgba(237, 232, 222, 0.14);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
+  --color-muted: var(--text-dimmed);
   --color-card: var(--card);
   --color-card-border: var(--card-border);
-  --color-accent: var(--accent);
-  --font-serif: var(--font-cormorant), serif;
-  --font-sans: var(--font-jakarta), sans-serif;
+  --color-accent: var(--accent-brass);
+  --font-serif: var(--font-fraunces), serif;
+  --font-sans: var(--font-space-grotesk), sans-serif;
+  --font-mono: var(--font-ibm-mono), monospace;
 }
 
 * {
@@ -39,7 +42,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
   overflow-x: hidden;
-  selection-background-color: var(--accent);
+  selection-background-color: var(--accent-brass);
   selection-color: #000;
 }
 

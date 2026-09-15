@@ -27,11 +27,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 nav-backdrop border-b border-white/5 transition-all">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0C0C0D]/80 backdrop-blur-md border-b border-[#EDE8DE]/14 transition-all">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         {/* Brand / Logo (Text Name) */}
         <Link href="/" className="flex items-center gap-3 group">
-          <span className="text-lg tracking-[0.2em] font-light uppercase text-zinc-100 group-hover:text-amber-500 transition-colors">
+          <span className="text-lg tracking-[0.2em] font-light uppercase text-[#EDE8DE] group-hover:text-[#B8863B] transition-colors font-sans">
             {siteTitle}
           </span>
         </Link>
@@ -45,15 +45,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`text-sm tracking-widest uppercase transition-all duration-300 relative py-1 ${
+                  className={`text-xs tracking-widest uppercase transition-all duration-300 relative py-1 font-sans ${
                     isActive
-                      ? "text-amber-400 font-medium"
-                      : "text-zinc-400 hover:text-zinc-100"
+                      ? "text-[#B8863B] font-medium"
+                      : "text-[#C9C4B8] hover:text-[#EDE8DE]"
                   }`}
                 >
                   {item.label}
                   {isActive && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-amber-500 rounded-full" />
+                    <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-[#B8863B] rounded-full" />
                   )}
                 </Link>
               );

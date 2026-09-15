@@ -598,3 +598,109 @@ export async function getAllPortfolioItems(): Promise<PortfolioItem[]> {
     return [];
   }
 }
+
+export interface Project {
+  id: string;
+  title: string;
+  role: string;
+  client: string;
+  year: string;
+  coverImage: string;
+  duration: string;
+  audioPreviewUrl?: string;
+  mediaType?: "audio" | "video";
+}
+
+export async function getReelProjects(): Promise<Project[]> {
+  try {
+    const rawItems = await getAllPortfolioItems();
+
+    const seedOnobiren: Project = {
+      id: "seed-onobiren",
+      title: "Onobiren",
+      role: "Composer & Sound Designer",
+      client: "Laju Iren Films",
+      year: "2026",
+      coverImage: "https://cdn.sanity.io/images/50173b3c/production/b9c22afc4357fd8509578a5bd41cb036a3df2baf-1440x1920.webp",
+      duration: "02:45",
+      audioPreviewUrl: "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/rave_digger.mp3",
+      mediaType: "audio",
+    };
+
+    const mappedFromSanity: Project[] = (rawItems || []).map((item, idx) => ({
+      id: item.id || `proj-${idx}`,
+      title: item.title,
+      role: item.role || "Composer & Producer",
+      client: item.artist || (item.category === "Screen" ? "Film Score" : item.category === "Ad" ? "Brand Campaign" : "Discography"),
+      year: item.year || "2025",
+      coverImage: item.coverUrl || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1200",
+      duration: item.scoreCues?.[0]?.duration || `${Math.floor(2 + (idx % 3))}:${(15 + (idx * 17) % 45).toString().padStart(2, "0")}`,
+      audioPreviewUrl: item.url,
+      mediaType: item.mediaType,
+    }));
+
+    const filteredMapped = mappedFromSanity.filter(
+      (p) => !p.title.toLowerCase().includes("onobiren")
+    );
+    const combined = [seedOnobiren, ...filteredMapped];
+
+    const placeholders: Project[] = [
+      {
+        id: "ph-1",
+        title: "Untitled Feature Score",
+        role: "Lead Composer",
+        client: "Cinema Guild (Placeholder)",
+        year: "2025",
+        coverImage: "https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=1200",
+        duration: "03:15",
+        audioPreviewUrl: "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/80s_vibe.mp3",
+        mediaType: "audio",
+      },
+      {
+        id: "ph-2",
+        title: "Brand Campaign Reel",
+        role: "Original Music & Mix",
+        client: "Global Media (Placeholder)",
+        year: "2025",
+        coverImage: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1200",
+        duration: "01:45",
+        audioPreviewUrl: "https://raw.githubusercontent.com/mdn/webaudio-examples/main/audio-analyser/vite.mp3",
+        mediaType: "audio",
+      },
+      {
+        id: "ph-3",
+        title: "Drama Series Cue",
+        role: "Score Producer",
+        client: "Screen Studio (Placeholder)",
+        year: "2024",
+        coverImage: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1200",
+        duration: "02:20",
+        audioPreviewUrl: "https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3",
+        mediaType: "audio",
+      },
+    ];
+
+    let phIdx = 0;
+    while (combined.length < 4) {
+      combined.push(placeholders[phIdx % placeholders.length]);
+      phIdx++;
+    }
+
+    return combined;
+  } catch (err) {
+    console.error("Error building reel projects:", err);
+    return [
+      {
+        id: "seed-onobiren",
+        title: "Onobiren",
+        role: "Composer & Sound Designer",
+        client: "Laju Iren Films",
+        year: "2026",
+        coverImage: "https://cdn.sanity.io/images/50173b3c/production/b9c22afc4357fd8509578a5bd41cb036a3df2baf-1440x1920.webp",
+        duration: "02:45",
+        audioPreviewUrl: "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/rave_digger.mp3",
+        mediaType: "audio",
+      },
+    ];
+  }
+}
