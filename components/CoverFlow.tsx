@@ -60,10 +60,12 @@ export const CoverFlow: React.FC<CoverFlowProps> = ({ items: initialItems }) => 
       getAllPortfolioItems().then((res) => {
         if (res && res.length > 0) {
           setAllItems(res);
+          setActiveIndex(0);
         }
       });
     } else {
       setAllItems(initialItems);
+      setActiveIndex(0);
     }
   }, [initialItems]);
 

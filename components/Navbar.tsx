@@ -6,12 +6,11 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
 const navItems = [
-  { label: "Home", href: "/" },
-  { label: "Screen", href: "/screen" },
-  { label: "Songs", href: "/songs" },
-  { label: "Ads", href: "/ads" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
+  { label: "WORK", href: "/#work" },
+  { label: "SERVICES", href: "/#services" },
+  { label: "ABOUT", href: "/about" },
+  { label: "ARCHIVE", href: "/#archive" },
+  { label: "CONTACT", href: "/contact" },
 ];
 
 interface NavbarProps {
