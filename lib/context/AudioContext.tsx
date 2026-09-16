@@ -73,8 +73,23 @@ function isExternalStreamingPage(url: string | undefined): boolean {
 const SAMPLE_AUDIO_FALLBACK = "https://raw.githubusercontent.com/goldfire/howler.js/master/examples/player/audio/rave_digger.mp3";
 
 export function normalizePlaylistItem(raw: any): PlaylistItem {
-  const rawUrl = raw.url || raw.audioUrl || raw.audioFileUrl || raw.videoUrl || raw.embedUrl || raw.externalUrl || "";
-  const isVideo = raw.mediaType === "video" || Boolean(raw.videoUrl) || isDirectVideoFile(rawUrl) || Boolean(extractYouTubeId(rawUrl));
+  const rawUrl =
+    raw.url ||
+    raw.audioUrl ||
+    raw.audioPreviewUrl ||
+    raw.audioFileUrl ||
+    raw.videoUrl ||
+    raw.videoFileUrl ||
+    raw.embedUrl ||
+    raw.externalUrl ||
+    "";
+
+  const isVideo =
+    raw.mediaType === "video" ||
+    Boolean(raw.videoUrl) ||
+    Boolean(raw.videoFileUrl) ||
+    isDirectVideoFile(rawUrl) ||
+    Boolean(extractYouTubeId(rawUrl));
 
   let url = rawUrl;
   if (!isVideo && (!url || url.includes("soundhelix.com"))) {
@@ -88,8 +103,8 @@ export function normalizePlaylistItem(raw: any): PlaylistItem {
     role: raw.role || raw.description || "Composer",
     mediaType: isVideo ? "video" : "audio",
     url: url,
-    posterUrl: raw.posterUrl || raw.coverUrl || raw.thumbnailUrl || "",
-    coverUrl: raw.coverUrl || raw.posterUrl || raw.thumbnailUrl || "",
+    posterUrl: raw.posterUrl || raw.coverUrl || raw.coverImage || raw.thumbnailUrl || "",
+    coverUrl: raw.coverUrl || raw.posterUrl || raw.coverImage || raw.thumbnailUrl || "",
     audioUrl: url,
     year: raw.year || raw.releaseYear || "",
     category: raw.category || (isVideo ? "Screen" : "Song"),
