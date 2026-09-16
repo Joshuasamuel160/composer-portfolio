@@ -18,6 +18,7 @@ function formatSecondsToMinSec(seconds: number): string {
 
 export const ReelTimeline: React.FC<ReelTimelineProps> = ({ projects }) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [dragDeltaX, setDragDeltaX] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);
 
   // Pointer/Touch swipe refs
@@ -108,7 +109,7 @@ export const ReelTimeline: React.FC<ReelTimelineProps> = ({ projects }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handlePrev, handleNext]);
 
-  // Swipe / Drag physics
+  // 1:1 Continuous Pointer & Touch Drag Physics
   const handlePointerDown = (e: React.PointerEvent) => {
     isPointerDownRef.current = true;
     startXRef.current = e.clientX;
@@ -117,19 +118,22 @@ export const ReelTimeline: React.FC<ReelTimelineProps> = ({ projects }) => {
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isPointerDownRef.current) return;
-    lastDxRef.current = e.clientX - startXRef.current;
+    const dx = e.clientX - startXRef.current;
+    lastDxRef.current = dx;
+    setDragDeltaX(dx);
   };
 
   const handlePointerUp = () => {
     if (!isPointerDownRef.current) return;
     isPointerDownRef.current = false;
     const dx = lastDxRef.current;
-    if (Math.abs(dx) > 30) {
-      if (dx < 0) {
-        handleNext();
-      } else {
-        handlePrev();
-      }
+    setDragDeltaX(0);
+
+    if (Math.abs(dx) > 15) {
+      const spacing = typeof window !== "undefined" && window.innerWidth < 640 ? 140 : 210;
+      const step = Math.round(-dx / spacing);
+      const clampedStep = step === 0 ? (dx < 0 ? 1 : -1) : step;
+      handleSelectIndex(activeIndex + clampedStep);
     }
   };
 
@@ -168,6 +172,9 @@ export const ReelTimeline: React.FC<ReelTimelineProps> = ({ projects }) => {
 
   if (!projects || projects.length === 0) return null;
 
+  const spacing = typeof window !== "undefined" && window.innerWidth < 640 ? 140 : 210;
+  const fractionalDrag = dragDeltaX / spacing;
+
   return (
     <section className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 select-none flex flex-col items-center">
       {/* 3D PERSPECTIVE REEL STAGE */}
@@ -198,25 +205,26 @@ export const ReelTimeline: React.FC<ReelTimelineProps> = ({ projects }) => {
               if (offset < -N / 2) offset += N;
             }
 
-            const absOffset = Math.abs(offset);
-            const isVisible = absOffset <= 2;
+            const effectiveOffset = offset + fractionalDrag;
+            const absOffset = Math.abs(effectiveOffset);
+            const isVisible = absOffset <= 2.5;
             if (!isVisible) return null;
 
-            const isCenter = offset === 0;
+            const isCenter = Math.abs(effectiveOffset) < 0.3;
 
-            // 3D positioning calculations
-            const translateX = offset * (typeof window !== "undefined" && window.innerWidth < 640 ? 140 : 210);
+            // 1:1 Continuous 3D positioning calculations
+            const translateX = effectiveOffset * spacing;
             const translateZ = isCenter ? 0 : -180 - (absOffset - 1) * 60;
-            const rotateY = isCenter ? 0 : offset > 0 ? -32 : 32;
-            const scale = isCenter ? 1 : 0.82;
-            const opacity = isCenter ? 1 : absOffset === 1 ? 0.45 : 0.2;
-            const zIndex = 20 - absOffset;
+            const rotateY = isCenter ? 0 : effectiveOffset > 0 ? -32 : 32;
+            const scale = Math.max(0.7, 1 - absOffset * 0.18);
+            const opacity = Math.max(0.15, 1 - absOffset * 0.42);
+            const zIndex = 20 - Math.round(absOffset);
 
             return (
               <div
                 key={proj.id}
                 onClick={() => handleSelectIndex(idx)}
-                className="absolute top-1/2 left-1/2 -mt-36 sm:-mt-44 md:-mt-52 -ml-28 sm:-ml-36 md:-ml-44 w-56 h-72 sm:w-72 sm:h-88 md:w-88 md:h-[400px] cursor-pointer transition-all duration-500 ease-out group"
+                className="absolute top-1/2 left-1/2 -mt-36 sm:-mt-44 md:-mt-52 -ml-28 sm:-ml-36 md:-ml-44 w-56 h-72 sm:w-72 sm:h-88 md:w-88 md:h-[400px] cursor-pointer transition-transform duration-100 ease-out group"
                 style={{
                   transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
                   opacity: opacity,

@@ -93,10 +93,10 @@ export const GlobalAudioPlayer: React.FC = () => {
         const y = (canvas.height - height) / 2;
 
         const gradient = ctx.createLinearGradient(0, y, 0, y + height);
-        gradient.addColorStop(0, "#f59e0b");
-        gradient.addColorStop(1, "#d97706");
+        gradient.addColorStop(0, "#B8863B");
+        gradient.addColorStop(1, "#8A682F");
 
-        ctx.fillStyle = isPlaying ? gradient : "rgba(255, 255, 255, 0.15)";
+        ctx.fillStyle = isPlaying ? gradient : "rgba(237, 232, 222, 0.15)";
         ctx.beginPath();
         ctx.roundRect(x, y, barWidth, height, 2);
         ctx.fill();
@@ -154,12 +154,12 @@ export const GlobalAudioPlayer: React.FC = () => {
     <>
       {/* FLOATING PICTURE-IN-PICTURE (PiP) VIDEO PLAYER WINDOW */}
       {showFloatingPip && (
-        <div className="fixed bottom-24 right-4 sm:right-6 z-50 w-72 sm:w-96 aspect-video bg-zinc-950 border border-white/20 rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 group">
+        <div className="fixed bottom-24 right-4 sm:right-6 z-50 w-72 sm:w-96 aspect-video bg-[#0C0C0D] border border-[#EDE8DE]/14 rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 group">
           {/* PiP Header Bar */}
-          <div className="flex items-center justify-between px-3 py-1.5 bg-zinc-900/90 border-b border-white/10 text-xs">
+          <div className="flex items-center justify-between px-3 py-1.5 bg-[#131313] border-b border-[#EDE8DE]/14 text-xs font-mono">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
-              <span className="font-mono text-[10px] text-zinc-300 uppercase tracking-widest truncate">
+              <span className="w-2 h-2 rounded-full bg-[#B8863B] animate-pulse flex-shrink-0" />
+              <span className="text-[10px] text-[#C9C4B8] uppercase tracking-widest truncate">
                 {currentItem.title}
               </span>
             </div>
@@ -167,14 +167,14 @@ export const GlobalAudioPlayer: React.FC = () => {
             <div className="flex items-center gap-1 flex-shrink-0">
               <button
                 onClick={togglePip}
-                className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                className="p-1 rounded text-[#8C8A80] hover:text-[#EDE8DE] hover:bg-[#0C0C0D] transition-colors"
                 title="Minimize Video"
               >
                 <Minimize2 size={14} />
               </button>
               <button
                 onClick={closePlayer}
-                className="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                className="p-1 rounded text-[#8C8A80] hover:text-[#EDE8DE] hover:bg-[#0C0C0D] transition-colors"
                 title="Close Player"
               >
                 <X size={14} />
@@ -207,10 +207,10 @@ export const GlobalAudioPlayer: React.FC = () => {
       )}
 
       {/* PERSISTENT BOTTOM MINI-PLAYER BAR */}
-      <div className="fixed bottom-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:max-w-4xl z-50 bg-zinc-950/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-3.5 shadow-2xl transition-all duration-300">
+      <div className="fixed bottom-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:max-w-4xl z-50 bg-[#0C0C0D]/95 backdrop-blur-2xl border border-[#EDE8DE]/14 rounded-2xl p-3.5 shadow-2xl transition-all duration-300">
         {/* REEL / COVER FLOW CONTROLLER BADGE STRIP */}
         {isReelMode ? (
-          <div className="flex items-center justify-between px-2 pb-2 mb-2 border-b border-amber-500/20 text-[10px] font-mono text-amber-400">
+          <div className="flex items-center justify-between px-2 pb-2 mb-2 border-b border-[#B8863B]/20 text-[10px] font-mono text-[#B8863B]">
             <span className="flex items-center gap-1.5 uppercase tracking-widest font-semibold">
               <Sparkles size={12} className="animate-spin" />
               FULL REEL MODE ACTIVE — {reelCategory || "CONTINUOUS QUEUE"} ({queueIndex + 1} OF {queue.length})
@@ -218,20 +218,10 @@ export const GlobalAudioPlayer: React.FC = () => {
 
             <button
               onClick={exitReel}
-              className="px-2 py-0.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 uppercase tracking-widest transition-colors"
+              className="px-2 py-0.5 rounded-full bg-[#B8863B]/10 hover:bg-[#B8863B]/20 border border-[#B8863B]/30 text-[#EDE8DE] uppercase tracking-widest transition-colors"
             >
               EXIT REEL
             </button>
-          </div>
-        ) : pathname === "/" ? (
-          <div className="flex items-center justify-between px-2 pb-1.5 mb-2 border-b border-amber-500/20 text-[9px] font-mono text-amber-400/90 tracking-widest uppercase font-bold">
-            <span className="flex items-center gap-1.5">
-              <Sparkles size={11} className="text-amber-400" />
-              COVER FLOW MASTER CONTROLLER
-            </span>
-            <span className="text-zinc-500 text-[9px]">
-              NAVIGATES & CONTROLS STAGE MEDIA
-            </span>
           </div>
         ) : null}
 
@@ -243,21 +233,21 @@ export const GlobalAudioPlayer: React.FC = () => {
                 <img
                   src={currentItem.posterUrl || currentItem.coverUrl}
                   alt={currentItem.title}
-                  className="w-12 h-12 rounded-xl object-cover border border-white/10 shadow-md"
+                  className="w-12 h-12 rounded-xl object-cover border border-[#EDE8DE]/14 shadow-md"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 flex items-center justify-center text-amber-500">
+                <div className="w-12 h-12 rounded-xl bg-[#131313] border border-[#EDE8DE]/14 flex items-center justify-center text-[#B8863B]">
                   {isVideo ? <Film size={20} /> : <Music size={20} />}
                 </div>
               )}
 
               {/* Animated DAW Soundwave Equalizer overlay badge */}
               {isPlaying && (
-                <div className="absolute inset-0 bg-zinc-950/60 rounded-xl flex items-center justify-center gap-0.5 p-1 backdrop-blur-[1px]">
-                  <span className="w-1 bg-amber-400 rounded-full animate-[bounce_0.6s_infinite_100ms] h-4" />
-                  <span className="w-1 bg-amber-400 rounded-full animate-[bounce_0.6s_infinite_300ms] h-6" />
-                  <span className="w-1 bg-amber-400 rounded-full animate-[bounce_0.6s_infinite_200ms] h-3" />
-                  <span className="w-1 bg-amber-400 rounded-full animate-[bounce_0.6s_infinite_400ms] h-5" />
+                <div className="absolute inset-0 bg-[#0C0C0D]/60 rounded-xl flex items-center justify-center gap-0.5 p-1 backdrop-blur-[1px]">
+                  <span className="w-1 bg-[#B8863B] rounded-full animate-[bounce_0.6s_infinite_100ms] h-4" />
+                  <span className="w-1 bg-[#B8863B] rounded-full animate-[bounce_0.6s_infinite_300ms] h-6" />
+                  <span className="w-1 bg-[#B8863B] rounded-full animate-[bounce_0.6s_infinite_200ms] h-3" />
+                  <span className="w-1 bg-[#B8863B] rounded-full animate-[bounce_0.6s_infinite_400ms] h-5" />
                 </div>
               )}
             </div>
@@ -265,22 +255,18 @@ export const GlobalAudioPlayer: React.FC = () => {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 mb-0.5">
                 <span
-                  className={`px-1.5 py-0.2 rounded text-[9px] font-mono uppercase tracking-widest border ${
-                    isVideo
-                      ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                      : "bg-purple-500/15 text-purple-300 border-purple-500/30"
-                  }`}
+                  className="px-1.5 py-0.2 rounded text-[9px] font-mono uppercase tracking-widest border bg-[#B8863B]/15 text-[#B8863B] border-[#B8863B]/30"
                 >
                   {currentItem.category || (isVideo ? "Video" : "Audio")}
                 </span>
                 {currentItem.year && (
-                  <span className="text-[10px] font-mono text-zinc-500">{currentItem.year}</span>
+                  <span className="text-[10px] font-mono text-[#8C8A80]">{currentItem.year}</span>
                 )}
               </div>
-              <h4 className="text-xs sm:text-sm font-medium text-zinc-100 truncate tracking-wide">
+              <h4 className="text-xs sm:text-sm font-medium text-[#EDE8DE] truncate tracking-wide font-sans">
                 {currentItem.title}
               </h4>
-              <p className="text-[11px] text-zinc-400 truncate font-mono">
+              <p className="text-[11px] text-[#C9C4B8] truncate font-sans">
                 {currentItem.artist} {currentItem.role ? `• ${currentItem.role}` : ""}
               </p>
             </div>
@@ -293,7 +279,7 @@ export const GlobalAudioPlayer: React.FC = () => {
               onClick={playPrevious}
               disabled={!hasPrev}
               className={`p-1.5 rounded-full transition-colors flex-shrink-0 ${
-                hasPrev ? "text-zinc-300 hover:text-white hover:bg-zinc-900" : "text-zinc-700 cursor-not-allowed"
+                hasPrev ? "text-[#EDE8DE] hover:text-[#B8863B] hover:bg-[#131313]" : "text-[#8C8A80]/40 cursor-not-allowed"
               }`}
               aria-label="Previous track"
             >
@@ -303,7 +289,7 @@ export const GlobalAudioPlayer: React.FC = () => {
             {/* Play / Pause Main Button */}
             <button
               onClick={togglePlay}
-              className="w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-400 text-zinc-950 flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-105 flex-shrink-0"
+              className="w-10 h-10 rounded-full bg-[#B8863B] hover:bg-[#B8863B]/90 text-[#0C0C0D] flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-105 flex-shrink-0"
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
@@ -318,7 +304,7 @@ export const GlobalAudioPlayer: React.FC = () => {
               onClick={playNext}
               disabled={!hasNext}
               className={`p-1.5 rounded-full transition-colors flex-shrink-0 ${
-                hasNext ? "text-zinc-300 hover:text-white hover:bg-zinc-900" : "text-zinc-700 cursor-not-allowed"
+                hasNext ? "text-[#EDE8DE] hover:text-[#B8863B] hover:bg-[#131313]" : "text-[#8C8A80]/40 cursor-not-allowed"
               }`}
               aria-label="Next track"
             >
@@ -327,7 +313,7 @@ export const GlobalAudioPlayer: React.FC = () => {
 
             {/* Scrubber Bar & Real-Time Canvas Spectrum */}
             <div className="flex-grow flex items-center gap-2 min-w-0 hidden sm:flex">
-              <span className="text-[11px] text-zinc-400 font-mono w-9 text-right flex-shrink-0">
+              <span className="text-[11px] text-[#8C8A80] font-mono w-9 text-right flex-shrink-0">
                 {formatTime(currentTime)}
               </span>
 
@@ -339,7 +325,7 @@ export const GlobalAudioPlayer: React.FC = () => {
 
                 {/* Progress Seek Scrubber */}
                 <div
-                  className="relative flex-grow h-1.5 bg-zinc-800 rounded-full cursor-pointer group overflow-hidden"
+                  className="relative flex-grow h-1.5 bg-[#131313] rounded-full cursor-pointer group overflow-hidden border border-[#EDE8DE]/14"
                   onClick={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     const clickPos = (e.clientX - rect.left) / rect.width;
@@ -347,13 +333,13 @@ export const GlobalAudioPlayer: React.FC = () => {
                   }}
                 >
                   <div
-                    className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-100"
+                    className="absolute top-0 bottom-0 left-0 bg-[#B8863B] rounded-full transition-all duration-100"
                     style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
                   />
                 </div>
               </div>
 
-              <span className="text-[11px] text-zinc-400 font-mono w-9 flex-shrink-0">
+              <span className="text-[11px] text-[#8C8A80] font-mono w-9 flex-shrink-0">
                 {formatTime(duration)}
               </span>
             </div>
